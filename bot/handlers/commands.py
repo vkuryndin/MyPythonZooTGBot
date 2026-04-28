@@ -48,13 +48,23 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
     user_id = message.from_user.id
 
     current_state = await state.get_state()
+    quiz_active = is_quiz_active(user_id)
+
     action_name = get_cancelled_action_name(
         current_state=current_state,
-        quiz_active=is_quiz_active(user_id),
+        quiz_active=quiz_active,
     )
     cancel_text = build_cancel_text(action_name)
 
+    if action_name is None:
+        await message.answer(
+            "Активного действия для отмены не было.\n\n"
+            "Используй кнопки меню или команду /help, если нужна подсказка 🐾"
+        )
+        return
+
     await state.clear()
+
     quiz_message_ids = cancel_active_quiz(user_id)
     await safe_delete_messages_by_ids(message, quiz_message_ids)
 

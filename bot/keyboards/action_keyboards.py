@@ -78,7 +78,7 @@ def get_feedback_comment_keyboard() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="⬅️ Изменить оценку",
+                    text="⬅️ Изменить оценки",
                     callback_data="feedback_change_rating",
                 )
             ],

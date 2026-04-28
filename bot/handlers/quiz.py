@@ -209,3 +209,8 @@ def cancel_active_quiz(user_id: int) -> None:
     """Cancel active quiz for user."""
 
     user_quiz_state.pop(user_id, None)
+
+def is_quiz_active(user_id: int) -> bool:
+    """Check whether user has an active quiz."""
+
+    return user_id in user_quiz_state

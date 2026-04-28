@@ -6,7 +6,8 @@ from aiogram.types import Message
 from bot.handlers.menu import show_main_menu
 from bot.handlers.result_view import show_last_result
 from bot.services.session_storage import get_last_result
-from bot.handlers.quiz import cancel_active_quiz
+from bot.handlers.quiz import cancel_active_quiz, is_quiz_active
+from bot.services.action_names import build_cancel_text, get_cancelled_action_name
 
 
 router = Router()
@@ -44,19 +45,28 @@ async def result_handler(message: Message) -> None:
 async def cancel_handler(message: Message, state: FSMContext) -> None:
     """Cancel current action and return to result or main menu."""
 
+    user_id = message.from_user.id
+
+    current_state = await state.get_state()
+    action_name = get_cancelled_action_name(
+        current_state=current_state,
+        quiz_active=is_quiz_active(user_id),
+    )
+    cancel_text = build_cancel_text(action_name)
+
     await state.clear()
+    cancel_active_quiz(user_id)
 
-    cancel_active_quiz(message.from_user.id)
+    if get_last_result(user_id) is not None:
+        await message.answer(cancel_text)
 
-    if get_last_result(message.from_user.id) is not None:
         await show_last_result(
             message=message,
-            user_id=message.from_user.id,
-            prefix_text="Текущее действие отменено.",
+            user_id=user_id,
         )
     else:
         await show_main_menu(
             message=message,
-            user_id=message.from_user.id,
-            text="Текущее действие отменено. Возвращаю в главное меню 🐾",
+            user_id=user_id,
+            text=f"{cancel_text}\n\nВозвращаю в главное меню 🐾",
         )

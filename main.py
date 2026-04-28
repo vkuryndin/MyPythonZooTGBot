@@ -6,7 +6,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import BotCommand
 
 from bot.config import settings
-from bot.handlers import commands, menu, quiz, result_actions, result_view, start
+from bot.handlers import commands, fallback, menu, quiz, result_actions, result_view, start
 
 
 logging.basicConfig(level=logging.INFO)
@@ -37,6 +37,7 @@ async def main() -> None:
     dp.include_router(quiz.router)
     dp.include_router(result_actions.router)
     dp.include_router(result_view.router)
+    dp.include_router(fallback.router)
 
     await set_bot_commands(bot)
     await dp.start_polling(bot)

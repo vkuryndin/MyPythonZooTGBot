@@ -21,9 +21,17 @@ from bot.services.message_utils import (
 )
 from bot.services.session_storage import get_last_result
 from bot.states.user_states import ContactStaffState, FeedbackState
-
+from bot.services.action_names import build_cancel_text, get_cancelled_action_name
 
 router = Router()
+
+FEEDBACK_STEPS = [
+    ("questions_quality", "качество и понятность вопросов"),
+    ("answers_quality", "качество и оригинальность ответов"),
+    ("images_quality", "качество картинок"),
+    ("navigation_quality", "понятность бота, меню и общей навигации"),
+    ("overall_quality", "викторину в целом"),
+]
 
 
 @router.callback_query(lambda callback: callback.data == "share_result")
@@ -244,7 +252,7 @@ async def send_contact_to_email(subject: str, body: str) -> str:
 
 @router.callback_query(lambda callback: callback.data == "leave_feedback")
 async def leave_feedback_handler(callback: CallbackQuery, state: FSMContext) -> None:
-    """Ask user to rate the quiz."""
+    """Start multi-step quiz feedback."""
 
     animal = get_last_result(callback.from_user.id)
 
@@ -254,20 +262,36 @@ async def leave_feedback_handler(callback: CallbackQuery, state: FSMContext) -> 
 
     await safe_delete_callback_message(callback)
 
-    sent_message = await callback.message.answer(
-        "Оцени, пожалуйста, викторину от 1 до 5 ⭐\n\n"
-        "1 — совсем не понравилось\n"
-        "5 — очень понравилось",
+    await state.update_data(
+        result_animal=animal["name"],
+        feedback_step=0,
+        feedback_ratings={},
+    )
+    await state.set_state(FeedbackState.waiting_for_rating)
+
+    await send_feedback_rating_question(callback.message, state)
+    await callback.answer()
+
+
+async def send_feedback_rating_question(message: Message, state: FSMContext) -> None:
+    """Send current feedback rating question."""
+
+    data = await state.get_data()
+    step_index = int(data.get("feedback_step", 0))
+
+    _, question_text = FEEDBACK_STEPS[step_index]
+
+    sent_message = await message.answer(
+        f"Оценка {step_index + 1} из {len(FEEDBACK_STEPS)} ⭐\n\n"
+        f"Оцени {question_text} от 1 до 5.\n\n"
+        "1 — совсем плохо\n"
+        "5 — отлично",
         reply_markup=get_feedback_rating_keyboard(),
     )
 
     await state.update_data(
-        result_animal=animal["name"],
         feedback_rating_prompt_message_id=sent_message.message_id,
     )
-    await state.set_state(FeedbackState.waiting_for_rating)
-
-    await callback.answer()
 
 
 @router.callback_query(
@@ -275,25 +299,41 @@ async def leave_feedback_handler(callback: CallbackQuery, state: FSMContext) -> 
     F.data.startswith("feedback_rating:"),
 )
 async def feedback_rating_handler(callback: CallbackQuery, state: FSMContext) -> None:
-    """Handle quiz rating."""
+    """Handle one feedback rating step."""
 
     await safe_delete_callback_message(callback)
 
     _, rating_text = callback.data.split(":")
     rating = int(rating_text)
 
-    sent_message = await callback.message.answer(
-        f"Спасибо! Твоя оценка: {rating} из 5 ⭐\n\n"
-        "Можешь ещё написать короткий комментарий: что понравилось, "
-        "что улучшить или какого животного не хватило.",
-        reply_markup=get_feedback_comment_keyboard(),
-    )
+    data = await state.get_data()
+    step_index = int(data.get("feedback_step", 0))
+    ratings = data.get("feedback_ratings", {})
 
-    await state.update_data(
-        rating=rating,
-        feedback_comment_prompt_message_id=sent_message.message_id,
-    )
-    await state.set_state(FeedbackState.waiting_for_comment)
+    rating_key, _ = FEEDBACK_STEPS[step_index]
+    ratings[rating_key] = rating
+
+    next_step_index = step_index + 1
+
+    if next_step_index < len(FEEDBACK_STEPS):
+        await state.update_data(
+            feedback_step=next_step_index,
+            feedback_ratings=ratings,
+        )
+        await send_feedback_rating_question(callback.message, state)
+    else:
+        sent_message = await callback.message.answer(
+            "Спасибо! Все оценки получены ⭐\n\n"
+            "Теперь можешь оставить короткий комментарий: "
+            "что понравилось, что улучшить или какого животного не хватило.",
+            reply_markup=get_feedback_comment_keyboard(),
+        )
+
+        await state.update_data(
+            feedback_ratings=ratings,
+            feedback_comment_prompt_message_id=sent_message.message_id,
+        )
+        await state.set_state(FeedbackState.waiting_for_comment)
 
     await callback.answer()
 
@@ -306,20 +346,21 @@ async def feedback_change_rating_handler(
     callback: CallbackQuery,
     state: FSMContext,
 ) -> None:
-    """Return user to feedback rating step."""
+    """Restart feedback rating flow."""
 
     await safe_delete_callback_message(callback)
 
-    sent_message = await callback.message.answer(
-        "Выбери новую оценку викторины от 1 до 5 ⭐",
-        reply_markup=get_feedback_rating_keyboard(),
-    )
+    data = await state.get_data()
+    result_animal = data.get("result_animal", "не указан")
 
     await state.update_data(
-        feedback_rating_prompt_message_id=sent_message.message_id,
+        result_animal=result_animal,
+        feedback_step=0,
+        feedback_ratings={},
     )
     await state.set_state(FeedbackState.waiting_for_rating)
 
+    await send_feedback_rating_question(callback.message, state)
     await callback.answer()
 
 
@@ -336,13 +377,22 @@ async def skip_feedback_comment_handler(
     await safe_delete_callback_message(callback)
 
     data = await state.get_data()
-    rating = data.get("rating", "не указана")
-
     await state.clear()
 
-    await callback.message.answer(
-        f"Спасибо за оценку! Ты поставил викторине {rating} из 5 ⭐"
+    feedback_message = build_feedback_staff_message(
+        user=callback.from_user,
+        result_animal=data.get("result_animal", "не указан"),
+        ratings=data.get("feedback_ratings", {}),
+        comment="Комментарий не оставлен.",
     )
+
+    delivery_text = await send_feedback_to_staff(
+        bot=callback.bot,
+        subject="PythonZoo: новый отзыв о викторине",
+        body=feedback_message,
+    )
+
+    await callback.message.answer(delivery_text)
 
     await show_last_result(
         message=callback.message,
@@ -354,21 +404,29 @@ async def skip_feedback_comment_handler(
 
 @router.message(FeedbackState.waiting_for_comment, F.text)
 async def feedback_comment_handler(message: Message, state: FSMContext) -> None:
-    """Receive user's feedback comment."""
+    """Receive user's feedback comment and send it to staff."""
 
     data = await state.get_data()
-    rating = data.get("rating", "не указана")
     prompt_message_id = data.get("feedback_comment_prompt_message_id")
+
+    feedback_message = build_feedback_staff_message(
+        user=message.from_user,
+        result_animal=data.get("result_animal", "не указан"),
+        ratings=data.get("feedback_ratings", {}),
+        comment=message.text,
+    )
+
+    delivery_text = await send_feedback_to_staff(
+        bot=message.bot,
+        subject="PythonZoo: новый отзыв о викторине",
+        body=feedback_message,
+    )
 
     await safe_delete_message_by_id(message, prompt_message_id)
     await safe_delete_message(message)
     await state.clear()
 
-    await message.answer(
-        "Спасибо за отзыв! 🐾\n\n"
-        f"Оценка: {rating} из 5 ⭐\n"
-        "Комментарий принят. Он поможет сделать викторину лучше."
-    )
+    await message.answer(delivery_text)
 
     await show_last_result(
         message=message,
@@ -380,10 +438,17 @@ async def feedback_comment_handler(message: Message, state: FSMContext) -> None:
 async def cancel_action_handler(callback: CallbackQuery, state: FSMContext) -> None:
     """Cancel current user action."""
 
+    current_state = await state.get_state()
+    action_name = get_cancelled_action_name(
+        current_state=current_state,
+        quiz_active=False,
+    )
+    cancel_text = build_cancel_text(action_name)
+
     await safe_delete_callback_message(callback)
     await state.clear()
 
-    await callback.message.answer("Действие отменено.")
+    await callback.message.answer(cancel_text)
 
     await show_last_result(
         message=callback.message,
@@ -391,7 +456,6 @@ async def cancel_action_handler(callback: CallbackQuery, state: FSMContext) -> N
     )
 
     await callback.answer()
-
 
 @router.callback_query(
     lambda callback: callback.data.startswith("feedback_rating:")
@@ -402,3 +466,86 @@ async def stale_feedback_action_handler(callback: CallbackQuery) -> None:
 
     await safe_delete_callback_message(callback)
     await callback.answer("Это действие уже неактуально 🙂")
+
+
+def build_feedback_staff_message(
+    user,
+    result_animal: str,
+    ratings: dict,
+    comment: str,
+) -> str:
+    """Build feedback message for zoo staff."""
+
+    username = f"@{user.username}" if user.username else "не указан"
+
+    return (
+        "⭐ Новый отзыв о викторине PythonZoo\n\n"
+        f"Пользователь: {user.full_name}\n"
+        f"Username: {username}\n"
+        f"Telegram ID: {user.id}\n"
+        f"Результат викторины: {result_animal}\n\n"
+        "Оценки:\n"
+        f"1. Качество и понятность вопросов: "
+        f"{ratings.get('questions_quality', 'не указано')} из 5\n"
+        f"2. Качество и оригинальность ответов: "
+        f"{ratings.get('answers_quality', 'не указано')} из 5\n"
+        f"3. Качество картинок: "
+        f"{ratings.get('images_quality', 'не указано')} из 5\n"
+        f"4. Понятность бота, меню и навигации: "
+        f"{ratings.get('navigation_quality', 'не указано')} из 5\n"
+        f"5. Викторина в целом: "
+        f"{ratings.get('overall_quality', 'не указано')} из 5\n\n"
+        f"Комментарий:\n{comment}"
+    )
+
+
+async def send_feedback_to_staff(bot, subject: str, body: str) -> str:
+    """Send feedback to staff via Telegram and email."""
+
+    telegram_sent = False
+    email_sent = False
+
+    if settings.admin_chat_id > 0:
+        try:
+            await bot.send_message(
+                chat_id=settings.admin_chat_id,
+                text=body,
+            )
+            telegram_sent = True
+        except TelegramAPIError:
+            telegram_sent = False
+
+    try:
+        await send_contact_email(
+            subject=subject,
+            body=body,
+        )
+        email_sent = True
+    except Exception:
+        email_sent = False
+
+    if telegram_sent and email_sent:
+        return (
+            "Спасибо за подробный отзыв! 🐾\n\n"
+            "Мы отправили его сотруднику в Telegram и на почту."
+        )
+
+    if telegram_sent and not email_sent:
+        return (
+            "Спасибо за отзыв! 🐾\n\n"
+            "Отзыв отправлен в Telegram. На почту отправить не удалось — "
+            "проверь настройки SMTP в .env."
+        )
+
+    if email_sent and not telegram_sent:
+        return (
+            "Спасибо за отзыв! 🐾\n\n"
+            "Отзыв отправлен на почту. В Telegram отправить не удалось — "
+            "проверь ADMIN_CHAT_ID."
+        )
+
+    return (
+        "Спасибо за отзыв! 🐾\n\n"
+        "Сейчас не удалось отправить его сотруднику. "
+        "Проверь ADMIN_CHAT_ID и SMTP-настройки в .env."
+    )

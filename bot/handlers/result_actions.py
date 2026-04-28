@@ -71,6 +71,11 @@ async def share_result_handler(callback: CallbackQuery) -> None:
         f"text={encoded_full_text}"
     )
 
+    max_share_url = (
+        "https://max.ru/:share?"
+        f"text={encoded_full_text}"
+    )
+
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -89,6 +94,12 @@ async def share_result_handler(callback: CallbackQuery) -> None:
                 InlineKeyboardButton(
                     text="🟢 WhatsApp",
                     url=whatsapp_share_url,
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🟦 MAX",
+                    url=max_share_url,
                 )
             ],
             [

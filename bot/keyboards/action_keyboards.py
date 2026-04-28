@@ -1,6 +1,33 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
+def get_contact_method_keyboard() -> InlineKeyboardMarkup:
+    """Create keyboard for choosing contact delivery method."""
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="📨 Отправить в Telegram",
+                    callback_data="contact_method:telegram",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="✉️ Отправить на почту",
+                    callback_data="contact_method:email",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="⬅️ Вернуться к результату",
+                    callback_data="back_to_result",
+                )
+            ],
+        ]
+    )
+
+
 def get_cancel_keyboard() -> InlineKeyboardMarkup:
     """Create cancel action keyboard."""
 
@@ -8,7 +35,7 @@ def get_cancel_keyboard() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="🏠 Вернуться в главное меню",
+                    text="⬅️ Вернуться к результату",
                     callback_data="cancel_action",
                 )
             ]
@@ -30,7 +57,7 @@ def get_feedback_rating_keyboard() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="🏠 Вернуться в главное меню",
+                    text="⬅️ Вернуться к результату",
                     callback_data="cancel_action",
                 )
             ],
@@ -57,7 +84,7 @@ def get_feedback_comment_keyboard() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="🏠 Вернуться в главное меню",
+                    text="⬅️ Вернуться к результату",
                     callback_data="cancel_action",
                 )
             ],

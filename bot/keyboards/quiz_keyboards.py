@@ -42,7 +42,7 @@ def get_result_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="🐾 Узнать про опеку",
-                    callback_data="about_adoption",
+                    callback_data="about_adoption:result",
                 )
             ],
             [
@@ -67,12 +67,6 @@ def get_result_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text="🔁 Пройти ещё раз",
                     callback_data="start_quiz",
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🏠 Главное меню",
-                    callback_data="main_menu",
                 )
             ],
         ]

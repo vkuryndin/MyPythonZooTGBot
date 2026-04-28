@@ -4,8 +4,10 @@ from aiogram.types import CallbackQuery, Message
 
 from bot.keyboards.main_menu import (
     get_back_to_main_menu_keyboard,
+    get_back_to_result_keyboard,
     get_main_menu_keyboard,
 )
+from bot.services.message_utils import safe_delete_callback_message
 from bot.services.session_storage import get_last_result
 
 
@@ -17,6 +19,10 @@ WELCOME_TEXT = (
     "Я бот Московского зоопарка. Помогу узнать, какое животное могло бы стать "
     "твоим тотемным.\n\n"
     "Ответь на несколько вопросов, а в конце я покажу результат."
+    "Команды управления:\n"
+    "/help — справка\n"
+    "/result — последний результат\n"
+    "/cancel — отменить текущее действие"
 )
 
 MAIN_MENU_TEXT = (
@@ -49,6 +55,7 @@ async def main_menu_handler(callback: CallbackQuery, state: FSMContext) -> None:
     """Show main menu."""
 
     await state.clear()
+    await safe_delete_callback_message(callback)
 
     await show_main_menu(
         message=callback.message,
@@ -57,9 +64,19 @@ async def main_menu_handler(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
 
-@router.callback_query(lambda callback: callback.data == "about_adoption")
+@router.callback_query(
+    lambda callback: callback.data in {
+        "about_adoption",
+        "about_adoption:main",
+        "about_adoption:result",
+    }
+)
 async def about_adoption_handler(callback: CallbackQuery) -> None:
     """Show information about the animal adoption program."""
+
+    is_from_result = callback.data == "about_adoption:result"
+
+    await safe_delete_callback_message(callback)
 
     await callback.message.answer(
         "🐾 О программе опеки\n\n"
@@ -67,8 +84,12 @@ async def about_adoption_handler(callback: CallbackQuery) -> None:
         "заботиться о его питании, уходе и условиях жизни.\n\n"
         "Это способ поддержать зоопарк и внести вклад в сохранение "
         "биоразнообразия.\n\n"
-        "После викторины ты можешь узнать своё тотемное животное, "
-        "поделиться результатом или связаться с сотрудником зоопарка.",
-        reply_markup=get_back_to_main_menu_keyboard(),
+        "Если хочешь узнать подробнее, можешь связаться с сотрудником "
+        "зоопарка после прохождения викторины.",
+        reply_markup=(
+            get_back_to_result_keyboard()
+            if is_from_result
+            else get_back_to_main_menu_keyboard()
+        ),
     )
     await callback.answer()

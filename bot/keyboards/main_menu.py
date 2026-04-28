@@ -13,14 +13,16 @@ def get_main_menu_keyboard(
     keyboard = [
         [
             InlineKeyboardButton(
-                text="🐾 Начать викторину" if not has_result else "🔁 Пройти викторину заново",
+                text="🐾 Начать викторину"
+                if not has_result
+                else "🔁 Пройти викторину заново",
                 callback_data="start_quiz",
             )
         ],
         [
             InlineKeyboardButton(
                 text="ℹ️ Узнать про опеку",
-                callback_data="about_adoption",
+                callback_data="about_adoption:main",
             )
         ],
     ]
@@ -71,6 +73,21 @@ def get_back_to_main_menu_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text="🏠 Вернуться в главное меню",
                     callback_data="main_menu",
+                )
+            ]
+        ]
+    )
+
+
+def get_back_to_result_keyboard() -> InlineKeyboardMarkup:
+    """Create keyboard with a button back to the last quiz result."""
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="⬅️ Вернуться к результату",
+                    callback_data="back_to_result",
                 )
             ]
         ]

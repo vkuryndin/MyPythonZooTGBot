@@ -1,14 +1,26 @@
-from pathlib import Path
-
-from aiogram import Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, FSInputFile
 
 from bot.handlers.menu import show_main_menu
-from bot.keyboards.quiz_keyboards import get_question_keyboard, get_result_keyboard
+
+from bot.handlers.result_view import send_animal_result, show_last_result
+from bot.services.session_storage import get_last_result, save_last_result
+
+from bot.keyboards.quiz_keyboards import get_question_keyboard
+from bot.services.message_utils import (
+    safe_delete_callback_message,
+    safe_delete_message,
+    safe_remove_keyboard,
+)
 from bot.services.quiz_service import quiz_service
-from bot.services.session_storage import save_last_result
+
+
+import asyncio
+
+from aiogram import F, Router
+from aiogram.exceptions import TelegramBadRequest
+from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery, Message
 
 
 router = Router()
@@ -21,7 +33,7 @@ async def start_quiz_handler(callback: CallbackQuery, state: FSMContext) -> None
     """Start quiz from the first question."""
 
     await state.clear()
-    await remove_old_buttons(callback)
+    await safe_delete_callback_message(callback)
 
     user_id = callback.from_user.id
     user_quiz_state[user_id] = {
@@ -35,22 +47,50 @@ async def start_quiz_handler(callback: CallbackQuery, state: FSMContext) -> None
 
 @router.callback_query(lambda callback: callback.data == "cancel_quiz")
 async def cancel_quiz_handler(callback: CallbackQuery, state: FSMContext) -> None:
-    """Cancel current quiz and return to main menu."""
+    """Cancel current quiz and return to result screen or main menu."""
 
     await state.clear()
 
     user_id = callback.from_user.id
     user_quiz_state.pop(user_id, None)
 
-    await remove_old_buttons(callback)
+    await safe_delete_callback_message(callback)
 
-    await show_main_menu(
-        message=callback.message,
-        user_id=user_id,
-        text="Викторина остановлена. Возвращаю в главное меню 🐾",
-    )
+    if get_last_result(user_id) is not None:
+        await show_last_result(
+            message=callback.message,
+            user_id=user_id,
+            prefix_text="Викторина остановлена. Возвращаю к твоему последнему результату 🐾",
+        )
+    else:
+        await show_main_menu(
+            message=callback.message,
+            user_id=user_id,
+            text="Викторина остановлена. Возвращаю в главное меню 🐾",
+        )
+
     await callback.answer()
 
+@router.message(lambda message: message.from_user.id in user_quiz_state, F.text)
+async def quiz_text_message_handler(message: Message) -> None:
+    """Delete text messages while quiz is active."""
+
+    await safe_delete_message(message)
+
+    warning_message = await message.answer(
+        "Во время викторины выбери один из вариантов ответа кнопкой 👇"
+    )
+
+    await asyncio.sleep(3)
+    await safe_delete_message(warning_message)
+
+@router.message(lambda message: message.from_user.id in user_quiz_state, F.text)
+async def quiz_text_message_handler(message: Message) -> None:
+    """Handle text messages while quiz is active."""
+
+    await message.answer(
+        "Во время викторины выбери один из вариантов ответа кнопкой 👇"
+    )
 
 @router.callback_query(lambda callback: callback.data.startswith("quiz_answer:"))
 async def quiz_answer_handler(callback: CallbackQuery) -> None:
@@ -152,10 +192,7 @@ async def mark_answer_selected(
 async def remove_old_buttons(callback: CallbackQuery) -> None:
     """Remove inline keyboard from an old message."""
 
-    try:
-        await callback.message.edit_reply_markup(reply_markup=None)
-    except TelegramBadRequest:
-        pass
+    await safe_remove_keyboard(callback)
 
 
 async def send_result(callback: CallbackQuery, user_id: int) -> None:
@@ -163,24 +200,12 @@ async def send_result(callback: CallbackQuery, user_id: int) -> None:
 
     scores = user_quiz_state[user_id]["scores"]
     animal = quiz_service.get_result_animal(scores)
+
     save_last_result(user_id, animal)
 
-    result_text = (
-        f"🎉 Твоё тотемное животное — {animal['name']}!\n\n"
-        f"{animal['description']}"
-    )
+    await send_animal_result(callback.message, animal)
 
-    image_path = Path(animal["image_path"])
+def cancel_active_quiz(user_id: int) -> None:
+    """Cancel active quiz for user."""
 
-    if image_path.exists():
-        photo = FSInputFile(image_path)
-        await callback.message.answer_photo(
-            photo=photo,
-            caption=result_text,
-            reply_markup=get_result_keyboard(),
-        )
-    else:
-        await callback.message.answer(
-            result_text,
-            reply_markup=get_result_keyboard(),
-        )
+    user_quiz_state.pop(user_id, None)

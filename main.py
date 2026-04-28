@@ -7,6 +7,7 @@ from aiogram.types import BotCommand
 
 from bot.config import settings
 from bot.handlers import commands, fallback, menu, quiz, result_actions, result_view, start
+from bot.repositories.database import close_db_pool, init_db_pool
 
 
 logging.basicConfig(level=logging.INFO)
@@ -28,6 +29,8 @@ async def set_bot_commands(bot: Bot) -> None:
 async def main() -> None:
     """Start the Telegram bot."""
 
+    await init_db_pool()
+
     bot = Bot(token=settings.bot_token)
     dp = Dispatcher(storage=MemoryStorage())
 
@@ -40,7 +43,12 @@ async def main() -> None:
     dp.include_router(fallback.router)
 
     await set_bot_commands(bot)
-    await dp.start_polling(bot)
+
+    try:
+        await dp.start_polling(bot)
+    finally:
+        await close_db_pool()
+        await bot.session.close()
 
 
 if __name__ == "__main__":

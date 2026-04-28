@@ -17,6 +17,7 @@ from bot.services.message_utils import (
 from bot.services.quiz_service import quiz_service
 from bot.services.session_storage import get_last_result, save_last_result
 
+from bot.repositories.quiz_result_repository import save_quiz_result
 
 router = Router()
 
@@ -200,6 +201,12 @@ async def send_result(callback: CallbackQuery, user_id: int) -> None:
     animal = quiz_service.get_result_animal(scores)
 
     save_last_result(user_id, animal)
+
+    await save_quiz_result(
+        user=callback.from_user,
+        animal=animal,
+        scores=scores,
+    )
 
     quiz_message_ids = cancel_active_quiz(user_id)
     await safe_delete_messages_by_ids(callback.message, quiz_message_ids)

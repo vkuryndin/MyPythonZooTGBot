@@ -1,9 +1,13 @@
 from urllib.parse import quote
+import logging
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramAPIError
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+
+from bot.repositories.contact_repository import save_contact_request
+from bot.repositories.feedback_repository import save_feedback
 
 from bot.config import settings
 from bot.handlers.result_view import show_last_result
@@ -24,6 +28,7 @@ from bot.states.user_states import ContactStaffState, FeedbackState
 from bot.services.action_names import build_cancel_text, get_cancelled_action_name
 
 router = Router()
+logger = logging.getLogger(__name__)
 
 FEEDBACK_STEPS = [
     ("questions_quality", "качество и понятность вопросов"),
@@ -177,7 +182,7 @@ async def contact_method_handler(callback: CallbackQuery, state: FSMContext) -> 
 
 @router.message(ContactStaffState.waiting_for_message, F.text)
 async def contact_message_handler(message: Message, state: FSMContext) -> None:
-    """Receive user's contact message and deliver it by selected method."""
+    """Receive user's contact message, deliver it and save to database."""
 
     data = await state.get_data()
     result_animal = data.get("result_animal", "не указан")
@@ -202,12 +207,26 @@ async def contact_message_handler(message: Message, state: FSMContext) -> None:
     )
 
     if contact_method == "telegram":
-        prefix_text = await send_contact_to_telegram(message, staff_message)
+        prefix_text, delivery_status = await send_contact_to_telegram(
+            message,
+            staff_message,
+        )
     else:
-        prefix_text = await send_contact_to_email(
+        prefix_text, delivery_status = await send_contact_to_email(
             subject=f"PythonZoo: сообщение от пользователя {full_name}",
             body=staff_message,
         )
+
+    try:
+        await save_contact_request(
+            user=message.from_user,
+            animal_name=result_animal,
+            contact_method=contact_method,
+            message_text=user_text,
+            delivery_status=delivery_status,
+        )
+    except Exception:
+        logger.exception("Failed to save contact request")
 
     await safe_delete_message_by_id(message, prompt_message_id)
     await safe_delete_message(message)
@@ -221,14 +240,18 @@ async def contact_message_handler(message: Message, state: FSMContext) -> None:
     )
 
 
-async def send_contact_to_telegram(message: Message, staff_message: str) -> str:
+async def send_contact_to_telegram(
+    message: Message,
+    staff_message: str,
+) -> tuple[str, str]:
     """Send contact request to admin Telegram chat."""
 
     if settings.admin_chat_id <= 0:
         return (
             "Спасибо! Сообщение принято 🐾\n\n"
             "Сейчас Telegram-отправка работает в демонстрационном режиме: "
-            "ADMIN_CHAT_ID не настроен."
+            "ADMIN_CHAT_ID не настроен.",
+            "telegram_not_configured",
         )
 
     try:
@@ -236,15 +259,18 @@ async def send_contact_to_telegram(message: Message, staff_message: str) -> str:
             chat_id=settings.admin_chat_id,
             text=staff_message,
         )
-        return "Спасибо! Сообщение отправлено сотруднику в Telegram 🐾"
+        return (
+            "Спасибо! Сообщение отправлено сотруднику в Telegram 🐾",
+            "telegram_sent",
+        )
     except TelegramAPIError:
         return (
             "Сообщение принято, но сейчас не удалось отправить его в Telegram. "
-            "Позже мы сохраним такие заявки в PostgreSQL."
+            "Проверь ADMIN_CHAT_ID или настройки доступа.",
+            "telegram_failed",
         )
 
-
-async def send_contact_to_email(subject: str, body: str) -> str:
+async def send_contact_to_email(subject: str, body: str) -> tuple[str, str]:
     """Send contact request to staff email."""
 
     try:
@@ -252,14 +278,16 @@ async def send_contact_to_email(subject: str, body: str) -> str:
             subject=subject,
             body=body,
         )
-        return "Спасибо! Сообщение отправлено сотруднику на почту 🐾"
+        return (
+            "Спасибо! Сообщение отправлено сотруднику на почту 🐾",
+            "email_sent",
+        )
     except Exception:
         return (
             "Сообщение принято, но сейчас не удалось отправить его на почту. "
-            "Проверь настройки SMTP в .env."
+            "Проверь настройки SMTP в .env.",
+            "email_failed",
         )
-
-
 
 @router.callback_query(lambda callback: callback.data == "leave_feedback")
 async def leave_feedback_handler(callback: CallbackQuery, state: FSMContext) -> None:
@@ -388,20 +416,36 @@ async def skip_feedback_comment_handler(
     await safe_delete_callback_message(callback)
 
     data = await state.get_data()
-    await state.clear()
+    ratings = data.get("feedback_ratings", {})
+    result_animal = data.get("result_animal", "не указан")
+    comment = None
 
     feedback_message = build_feedback_staff_message(
         user=callback.from_user,
-        result_animal=data.get("result_animal", "не указан"),
-        ratings=data.get("feedback_ratings", {}),
+        result_animal=result_animal,
+        ratings=ratings,
         comment="Комментарий не оставлен.",
     )
 
-    delivery_text = await send_feedback_to_staff(
+    delivery_text, telegram_sent, email_sent = await send_feedback_to_staff(
         bot=callback.bot,
         subject="PythonZoo: новый отзыв о викторине",
         body=feedback_message,
     )
+
+    try:
+        await save_feedback(
+            user=callback.from_user,
+            animal_name=result_animal,
+            ratings=ratings,
+            comment_text=comment,
+            telegram_sent=telegram_sent,
+            email_sent=email_sent,
+        )
+    except Exception:
+        logger.exception("Failed to save feedback")
+
+    await state.clear()
 
     await callback.message.answer(delivery_text)
 
@@ -415,23 +459,38 @@ async def skip_feedback_comment_handler(
 
 @router.message(FeedbackState.waiting_for_comment, F.text)
 async def feedback_comment_handler(message: Message, state: FSMContext) -> None:
-    """Receive user's feedback comment and send it to staff."""
+    """Receive user's feedback comment, send it and save to database."""
 
     data = await state.get_data()
+    ratings = data.get("feedback_ratings", {})
+    result_animal = data.get("result_animal", "не указан")
     prompt_message_id = data.get("feedback_comment_prompt_message_id")
+    comment = message.text
 
     feedback_message = build_feedback_staff_message(
         user=message.from_user,
-        result_animal=data.get("result_animal", "не указан"),
-        ratings=data.get("feedback_ratings", {}),
-        comment=message.text,
+        result_animal=result_animal,
+        ratings=ratings,
+        comment=comment,
     )
 
-    delivery_text = await send_feedback_to_staff(
+    delivery_text, telegram_sent, email_sent = await send_feedback_to_staff(
         bot=message.bot,
         subject="PythonZoo: новый отзыв о викторине",
         body=feedback_message,
     )
+
+    try:
+        await save_feedback(
+            user=message.from_user,
+            animal_name=result_animal,
+            ratings=ratings,
+            comment_text=comment,
+            telegram_sent=telegram_sent,
+            email_sent=email_sent,
+        )
+    except Exception:
+        logger.exception("Failed to save feedback")
 
     await safe_delete_message_by_id(message, prompt_message_id)
     await safe_delete_message(message)
@@ -510,7 +569,11 @@ def build_feedback_staff_message(
     )
 
 
-async def send_feedback_to_staff(bot, subject: str, body: str) -> str:
+async def send_feedback_to_staff(
+    bot,
+    subject: str,
+    body: str,
+) -> tuple[str, bool, bool]:
     """Send feedback to staff via Telegram and email."""
 
     telegram_sent = False
@@ -538,25 +601,33 @@ async def send_feedback_to_staff(bot, subject: str, body: str) -> str:
     if telegram_sent and email_sent:
         return (
             "Спасибо за подробный отзыв! 🐾\n\n"
-            "Мы отправили его сотруднику в Telegram и на почту."
+            "Мы отправили его сотруднику в Telegram и на почту.",
+            telegram_sent,
+            email_sent,
         )
 
     if telegram_sent and not email_sent:
         return (
             "Спасибо за отзыв! 🐾\n\n"
             "Отзыв отправлен в Telegram. На почту отправить не удалось — "
-            "проверь настройки SMTP в .env."
+            "проверь настройки SMTP в .env.",
+            telegram_sent,
+            email_sent,
         )
 
     if email_sent and not telegram_sent:
         return (
             "Спасибо за отзыв! 🐾\n\n"
             "Отзыв отправлен на почту. В Telegram отправить не удалось — "
-            "проверь ADMIN_CHAT_ID."
+            "проверь ADMIN_CHAT_ID.",
+            telegram_sent,
+            email_sent,
         )
 
     return (
         "Спасибо за отзыв! 🐾\n\n"
         "Сейчас не удалось отправить его сотруднику. "
-        "Проверь ADMIN_CHAT_ID и SMTP-настройки в .env."
+        "Проверь ADMIN_CHAT_ID и SMTP-настройки в .env.",
+        telegram_sent,
+        email_sent,
     )

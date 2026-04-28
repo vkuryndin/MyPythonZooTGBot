@@ -16,5 +16,4 @@ async def start_handler(message: Message) -> None:
         message=message,
         user_id=message.from_user.id,
         text=WELCOME_TEXT,
-        include_home_button=True,
     )

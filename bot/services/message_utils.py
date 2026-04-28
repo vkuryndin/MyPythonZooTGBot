@@ -51,3 +51,18 @@ async def safe_remove_keyboard(callback: CallbackQuery) -> None:
         await callback.message.edit_reply_markup(reply_markup=None)
     except TelegramBadRequest:
         pass
+
+async def safe_delete_messages_by_ids(
+    message: Message,
+    message_ids: list[int],
+) -> None:
+    """Safely delete several messages by ids in the same chat."""
+
+    for message_id in message_ids:
+        try:
+            await message.bot.delete_message(
+                chat_id=message.chat.id,
+                message_id=message_id,
+            )
+        except TelegramBadRequest:
+            pass

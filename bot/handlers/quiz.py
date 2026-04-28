@@ -1,26 +1,21 @@
-from aiogram.exceptions import TelegramBadRequest
-from aiogram.fsm.context import FSMContext
-
-from bot.handlers.menu import show_main_menu
-
-from bot.handlers.result_view import send_animal_result, show_last_result
-from bot.services.session_storage import get_last_result, save_last_result
-
-from bot.keyboards.quiz_keyboards import get_question_keyboard
-from bot.services.message_utils import (
-    safe_delete_callback_message,
-    safe_delete_message,
-    safe_remove_keyboard,
-)
-from bot.services.quiz_service import quiz_service
-
-
 import asyncio
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+
+from bot.handlers.menu import show_main_menu
+from bot.handlers.result_view import send_animal_result, show_last_result
+from bot.keyboards.quiz_keyboards import get_question_keyboard
+from bot.services.message_utils import (
+    safe_delete_callback_message,
+    safe_delete_message,
+    safe_delete_messages_by_ids,
+    safe_remove_keyboard,
+)
+from bot.services.quiz_service import quiz_service
+from bot.services.session_storage import get_last_result, save_last_result
 
 
 router = Router()
@@ -36,9 +31,14 @@ async def start_quiz_handler(callback: CallbackQuery, state: FSMContext) -> None
     await safe_delete_callback_message(callback)
 
     user_id = callback.from_user.id
+
+    old_message_ids = cancel_active_quiz(user_id)
+    await safe_delete_messages_by_ids(callback.message, old_message_ids)
+
     user_quiz_state[user_id] = {
         "question_index": 0,
         "scores": {},
+        "quiz_message_ids": [],
     }
 
     await send_question(callback, user_id)
@@ -52,15 +52,18 @@ async def cancel_quiz_handler(callback: CallbackQuery, state: FSMContext) -> Non
     await state.clear()
 
     user_id = callback.from_user.id
-    user_quiz_state.pop(user_id, None)
+    quiz_message_ids = cancel_active_quiz(user_id)
 
-    await safe_delete_callback_message(callback)
+    await safe_delete_messages_by_ids(callback.message, quiz_message_ids)
 
     if get_last_result(user_id) is not None:
+        await callback.message.answer(
+            "Викторина остановлена. Возвращаю к твоему последнему результату 🐾"
+        )
+
         await show_last_result(
             message=callback.message,
             user_id=user_id,
-            prefix_text="Викторина остановлена. Возвращаю к твоему последнему результату 🐾",
         )
     else:
         await show_main_menu(
@@ -70,6 +73,7 @@ async def cancel_quiz_handler(callback: CallbackQuery, state: FSMContext) -> Non
         )
 
     await callback.answer()
+
 
 @router.message(lambda message: message.from_user.id in user_quiz_state, F.text)
 async def quiz_text_message_handler(message: Message) -> None:
@@ -84,13 +88,6 @@ async def quiz_text_message_handler(message: Message) -> None:
     await asyncio.sleep(3)
     await safe_delete_message(warning_message)
 
-@router.message(lambda message: message.from_user.id in user_quiz_state, F.text)
-async def quiz_text_message_handler(message: Message) -> None:
-    """Handle text messages while quiz is active."""
-
-    await message.answer(
-        "Во время викторины выбери один из вариантов ответа кнопкой 👇"
-    )
 
 @router.callback_query(lambda callback: callback.data.startswith("quiz_answer:"))
 async def quiz_answer_handler(callback: CallbackQuery) -> None:
@@ -125,7 +122,6 @@ async def quiz_answer_handler(callback: CallbackQuery) -> None:
 
     if quiz_service.is_last_question(question_index):
         await send_result(callback, user_id)
-        user_quiz_state.pop(user_id, None)
     else:
         state["question_index"] = question_index + 1
         await send_question(callback, user_id)
@@ -147,13 +143,15 @@ async def send_question(callback: CallbackQuery, user_id: int) -> None:
         for option_index, option in enumerate(question["options"])
     )
 
-    await callback.message.answer(
+    sent_message = await callback.message.answer(
         f"Вопрос {question_index + 1} из {total_questions}\n\n"
         f"{question['text']}\n\n"
         f"{options_text}\n\n"
         "Выбери номер ответа 👇",
         reply_markup=get_question_keyboard(question, question_index),
     )
+
+    user_quiz_state[user_id]["quiz_message_ids"].append(sent_message.message_id)
 
 
 async def mark_answer_selected(
@@ -203,12 +201,22 @@ async def send_result(callback: CallbackQuery, user_id: int) -> None:
 
     save_last_result(user_id, animal)
 
+    quiz_message_ids = cancel_active_quiz(user_id)
+    await safe_delete_messages_by_ids(callback.message, quiz_message_ids)
+
     await send_animal_result(callback.message, animal)
 
-def cancel_active_quiz(user_id: int) -> None:
-    """Cancel active quiz for user."""
 
-    user_quiz_state.pop(user_id, None)
+def cancel_active_quiz(user_id: int) -> list[int]:
+    """Cancel active quiz for user and return quiz message ids."""
+
+    state = user_quiz_state.pop(user_id, None)
+
+    if state is None:
+        return []
+
+    return state.get("quiz_message_ids", [])
+
 
 def is_quiz_active(user_id: int) -> bool:
     """Check whether user has an active quiz."""

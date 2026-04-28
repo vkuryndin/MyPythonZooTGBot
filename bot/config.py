@@ -5,6 +5,8 @@ class Settings(BaseSettings):
     """Application settings loaded from .env file."""
 
     bot_token: str
+    bot_link: str = "https://t.me/your_bot_username"
+    admin_chat_id: int = 0
 
     db_host: str
     db_port: int

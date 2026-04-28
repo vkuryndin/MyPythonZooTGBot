@@ -22,6 +22,15 @@ def get_question_keyboard(question: dict, question_index: int) -> InlineKeyboard
     if row:
         buttons.append(row)
 
+    buttons.append(
+        [
+            InlineKeyboardButton(
+                text="❌ Завершить викторину",
+                callback_data="cancel_quiz",
+            )
+        ]
+    )
+
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
@@ -58,6 +67,12 @@ def get_result_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text="🔁 Пройти ещё раз",
                     callback_data="start_quiz",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🏠 Главное меню",
+                    callback_data="main_menu",
                 )
             ],
         ]

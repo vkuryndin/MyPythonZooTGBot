@@ -2,10 +2,13 @@ from pathlib import Path
 
 from aiogram import Router
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile
 
+from bot.handlers.menu import show_main_menu
 from bot.keyboards.quiz_keyboards import get_question_keyboard, get_result_keyboard
 from bot.services.quiz_service import quiz_service
+from bot.services.session_storage import save_last_result
 
 
 router = Router()
@@ -14,8 +17,11 @@ user_quiz_state: dict[int, dict] = {}
 
 
 @router.callback_query(lambda callback: callback.data == "start_quiz")
-async def start_quiz_handler(callback: CallbackQuery) -> None:
+async def start_quiz_handler(callback: CallbackQuery, state: FSMContext) -> None:
     """Start quiz from the first question."""
+
+    await state.clear()
+    await remove_old_buttons(callback)
 
     user_id = callback.from_user.id
     user_quiz_state[user_id] = {
@@ -27,6 +33,25 @@ async def start_quiz_handler(callback: CallbackQuery) -> None:
     await callback.answer()
 
 
+@router.callback_query(lambda callback: callback.data == "cancel_quiz")
+async def cancel_quiz_handler(callback: CallbackQuery, state: FSMContext) -> None:
+    """Cancel current quiz and return to main menu."""
+
+    await state.clear()
+
+    user_id = callback.from_user.id
+    user_quiz_state.pop(user_id, None)
+
+    await remove_old_buttons(callback)
+
+    await show_main_menu(
+        message=callback.message,
+        user_id=user_id,
+        text="Викторина остановлена. Возвращаю в главное меню 🐾",
+    )
+    await callback.answer()
+
+
 @router.callback_query(lambda callback: callback.data.startswith("quiz_answer:"))
 async def quiz_answer_handler(callback: CallbackQuery) -> None:
     """Handle selected quiz answer and show next question or result."""
@@ -34,6 +59,7 @@ async def quiz_answer_handler(callback: CallbackQuery) -> None:
     user_id = callback.from_user.id
 
     if user_id not in user_quiz_state:
+        await remove_old_buttons(callback)
         await callback.answer("Эта викторина уже завершена или не начата 🙂")
         return
 
@@ -137,6 +163,7 @@ async def send_result(callback: CallbackQuery, user_id: int) -> None:
 
     scores = user_quiz_state[user_id]["scores"]
     animal = quiz_service.get_result_animal(scores)
+    save_last_result(user_id, animal)
 
     result_text = (
         f"🎉 Твоё тотемное животное — {animal['name']}!\n\n"

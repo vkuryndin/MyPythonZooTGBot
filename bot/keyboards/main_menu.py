@@ -1,22 +1,77 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-def get_main_menu_keyboard() -> InlineKeyboardMarkup:
-    """Create the main menu keyboard."""
+def get_main_menu_keyboard(
+    has_result: bool,
+    include_home_button: bool = False,
+) -> InlineKeyboardMarkup:
+    """Create the main menu keyboard.
+
+    If user already has a quiz result, show additional result actions.
+    """
+
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                text="🐾 Начать викторину" if not has_result else "🔁 Пройти викторину заново",
+                callback_data="start_quiz",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="ℹ️ Узнать про опеку",
+                callback_data="about_adoption",
+            )
+        ],
+    ]
+
+    if has_result:
+        keyboard.extend(
+            [
+                [
+                    InlineKeyboardButton(
+                        text="📤 Поделиться результатом",
+                        callback_data="share_result",
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="💬 Связаться с сотрудником",
+                        callback_data="contact_staff",
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="⭐ Оставить отзыв",
+                        callback_data="leave_feedback",
+                    )
+                ],
+            ]
+        )
+
+    if include_home_button:
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text="🏠 Главное меню",
+                    callback_data="main_menu",
+                )
+            ]
+        )
+
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def get_back_to_main_menu_keyboard() -> InlineKeyboardMarkup:
+    """Create keyboard with a button back to the main menu."""
 
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="🐾 Начать викторину",
-                    callback_data="start_quiz",
+                    text="🏠 Вернуться в главное меню",
+                    callback_data="main_menu",
                 )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="ℹ️ Узнать про опеку",
-                    callback_data="about_adoption",
-                )
-            ],
+            ]
         ]
     )

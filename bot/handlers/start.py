@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
-from bot.keyboards.main_menu import get_main_menu_keyboard
+from bot.handlers.menu import WELCOME_TEXT, show_main_menu
 
 
 router = Router()
@@ -12,11 +12,9 @@ router = Router()
 async def start_handler(message: Message) -> None:
     """Handle the /start command."""
 
-    await message.answer(
-        "Привет! 🐾\n\n"
-        "Я бот Московского зоопарка. Помогу узнать, "
-        "какое животное могло бы стать твоим тотемным.\n\n"
-        "Ответь на несколько вопросов, а в конце я покажу результат "
-        "и расскажу, как можно поддержать животных через программу опеки.",
-        reply_markup=get_main_menu_keyboard(),
+    await show_main_menu(
+        message=message,
+        user_id=message.from_user.id,
+        text=WELCOME_TEXT,
+        include_home_button=True,
     )

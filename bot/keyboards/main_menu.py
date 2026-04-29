@@ -10,22 +10,39 @@ def get_main_menu_keyboard(
     If user already has a quiz result, show additional result actions.
     """
 
-    keyboard = [
+    keyboard = []
+
+    if has_result:
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text="🎉 Посмотреть мой результат",
+                    callback_data="back_to_result",
+                )
+            ]
+        )
+
+    keyboard.append(
         [
             InlineKeyboardButton(
-                text="🐾 Начать викторину"
-                if not has_result
-                else "🔁 Пройти викторину заново",
+                text=(
+                    "🐾 Начать викторину"
+                    if not has_result
+                    else "🔁 Пройти викторину заново"
+                ),
                 callback_data="start_quiz",
             )
-        ],
+        ]
+    )
+
+    keyboard.append(
         [
             InlineKeyboardButton(
                 text="ℹ️ Узнать про опеку",
                 callback_data="about_adoption:main",
             )
-        ],
-    ]
+        ]
+    )
 
     if has_result:
         keyboard.extend(

@@ -6,7 +6,20 @@ from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.types import BotCommand, BotCommandScopeChat, BotCommandScopeDefault
 
 from bot.config import settings
-from bot.handlers import admin, commands, fallback, menu, quiz, result_actions, result_view, start
+from bot.handlers import (
+    admin,
+    cancel_actions,
+    commands,
+    contact_actions,
+    fallback,
+    feedback_actions,
+    menu,
+    quiz,
+    result_image_actions,
+    result_view,
+    share_actions,
+    start,
+)
 from bot.repositories.database import close_db_pool, init_db_pool
 from bot.repositories.redis_client import close_redis_client, init_redis_client
 
@@ -65,7 +78,11 @@ async def main() -> None:
     dp.include_router(admin.router)
     dp.include_router(menu.router)
     dp.include_router(quiz.router)
-    dp.include_router(result_actions.router)
+    dp.include_router(share_actions.router)
+    dp.include_router(contact_actions.router)
+    dp.include_router(feedback_actions.router)
+    dp.include_router(cancel_actions.router)
+    dp.include_router(result_image_actions.router)
     dp.include_router(result_view.router)
     dp.include_router(fallback.router)
 

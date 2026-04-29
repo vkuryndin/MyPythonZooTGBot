@@ -109,3 +109,26 @@ def get_back_to_result_keyboard() -> InlineKeyboardMarkup:
             ]
         ]
     )
+
+def get_adoption_keyboard(has_result: bool) -> InlineKeyboardMarkup:
+    """Create keyboard for adoption information screen."""
+
+    contact_callback = "contact_staff:result" if has_result else "contact_staff:main"
+    back_callback = "back_to_result" if has_result else "main_menu"
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="💬 Связаться с сотрудником",
+                    callback_data=contact_callback,
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="⬅️ Вернуться назад",
+                    callback_data=back_callback,
+                )
+            ],
+        ]
+    )

@@ -5,8 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile, Message
 
 from bot.keyboards.main_menu import (
-    get_back_to_main_menu_keyboard,
-    get_back_to_result_keyboard,
+    get_adoption_keyboard,
     get_main_menu_keyboard,
 )
 from bot.services.message_utils import safe_delete_callback_message
@@ -80,7 +79,9 @@ async def show_main_menu(
     text: str | None = None,
     include_home_button: bool = False,
 ) -> None:
-    """Send main menu with dynamic buttons."""
+    """Send main menu with dynamic buttons.
+    :rtype: None
+    """
 
     user_has_result = await has_last_result(user_id)
 
@@ -141,16 +142,12 @@ async def main_menu_handler(callback: CallbackQuery, state: FSMContext) -> None:
 async def about_adoption_handler(callback: CallbackQuery) -> None:
     """Show information about the animal adoption program."""
 
-    is_from_result = callback.data == "about_adoption:result"
+    user_has_result = await has_last_result(callback.from_user.id)
 
     await safe_delete_callback_message(callback)
 
     await callback.message.answer(
         ABOUT_ADOPTION_TEXT,
-        reply_markup=(
-            get_back_to_result_keyboard()
-            if is_from_result
-            else get_back_to_main_menu_keyboard()
-        ),
+        reply_markup=get_adoption_keyboard(has_result=user_has_result),
     )
     await callback.answer()

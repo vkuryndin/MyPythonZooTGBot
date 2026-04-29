@@ -8,7 +8,7 @@ from bot.keyboards.main_menu import (
     get_main_menu_keyboard,
 )
 from bot.services.message_utils import safe_delete_callback_message
-from bot.services.session_storage import get_last_result
+from bot.services.result_service import has_last_result
 
 
 router = Router()
@@ -39,7 +39,7 @@ async def show_main_menu(
 ) -> None:
     """Send main menu with dynamic buttons."""
 
-    has_result = get_last_result(user_id) is not None
+    has_result = await has_last_result(user_id)
 
     await message.answer(
         text or MAIN_MENU_TEXT,

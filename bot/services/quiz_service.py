@@ -39,6 +39,11 @@ class QuizService:
         winner_id = max(scores, key=scores.get)
         return self._find_animal_by_id(winner_id)
 
+    def get_animal_by_id(self, animal_id: str) -> dict[str, Any]:
+        """Get animal by id."""
+
+        return self._find_animal_by_id(animal_id)
+
     def _find_animal_by_id(self, animal_id: str) -> dict[str, Any]:
         for animal in self.animals:
             if animal["id"] == animal_id:

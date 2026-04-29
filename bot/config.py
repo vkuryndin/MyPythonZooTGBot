@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     db_user: str
     db_password: str
 
+    redis_url: str = "redis://localhost:6379/0"
+
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
     smtp_user: str = ""

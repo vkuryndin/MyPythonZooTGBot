@@ -2,12 +2,23 @@ import asyncio
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.filters import BaseFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from bot.handlers.menu import show_main_menu
 from bot.handlers.result_view import send_animal_result, show_last_result
 from bot.keyboards.quiz_keyboards import get_question_keyboard
+from bot.repositories.quiz_result_repository import save_quiz_result
+from bot.repositories.quiz_session_repository import (
+    add_quiz_message_id,
+    add_scores,
+    create_quiz_session,
+    delete_quiz_session,
+    get_quiz_session,
+    is_quiz_session_active,
+    set_question_index,
+)
 from bot.services.message_utils import (
     safe_delete_callback_message,
     safe_delete_message,
@@ -15,13 +26,18 @@ from bot.services.message_utils import (
     safe_remove_keyboard,
 )
 from bot.services.quiz_service import quiz_service
-from bot.services.session_storage import get_last_result, save_last_result
+from bot.services.result_service import has_last_result
 
-from bot.repositories.quiz_result_repository import save_quiz_result
+
 
 router = Router()
 
-user_quiz_state: dict[int, dict] = {}
+
+class ActiveQuizFilter(BaseFilter):
+    """Filter messages from users who have an active quiz session."""
+
+    async def __call__(self, message: Message) -> bool:
+        return await is_quiz_session_active(message.from_user.id)
 
 
 @router.callback_query(lambda callback: callback.data == "start_quiz")
@@ -33,16 +49,12 @@ async def start_quiz_handler(callback: CallbackQuery, state: FSMContext) -> None
 
     user_id = callback.from_user.id
 
-    old_message_ids = cancel_active_quiz(user_id)
+    old_message_ids = await delete_quiz_session(user_id)
     await safe_delete_messages_by_ids(callback.message, old_message_ids)
 
-    user_quiz_state[user_id] = {
-        "question_index": 0,
-        "scores": {},
-        "quiz_message_ids": [],
-    }
-
+    await create_quiz_session(user_id)
     await send_question(callback, user_id)
+
     await callback.answer()
 
 
@@ -53,11 +65,11 @@ async def cancel_quiz_handler(callback: CallbackQuery, state: FSMContext) -> Non
     await state.clear()
 
     user_id = callback.from_user.id
-    quiz_message_ids = cancel_active_quiz(user_id)
+    quiz_message_ids = await delete_quiz_session(user_id)
 
     await safe_delete_messages_by_ids(callback.message, quiz_message_ids)
 
-    if get_last_result(user_id) is not None:
+    if await has_last_result(user_id):
         await callback.message.answer(
             "Викторина остановлена. Возвращаю к твоему последнему результату 🐾"
         )
@@ -76,7 +88,7 @@ async def cancel_quiz_handler(callback: CallbackQuery, state: FSMContext) -> Non
     await callback.answer()
 
 
-@router.message(lambda message: message.from_user.id in user_quiz_state, F.text)
+@router.message(ActiveQuizFilter(), F.text)
 async def quiz_text_message_handler(message: Message) -> None:
     """Delete text messages while quiz is active."""
 
@@ -95,8 +107,9 @@ async def quiz_answer_handler(callback: CallbackQuery) -> None:
     """Handle selected quiz answer and show next question or result."""
 
     user_id = callback.from_user.id
+    session = await get_quiz_session(user_id)
 
-    if user_id not in user_quiz_state:
+    if session is None:
         await remove_old_buttons(callback)
         await callback.answer("Эта викторина уже завершена или не начата 🙂")
         return
@@ -105,8 +118,7 @@ async def quiz_answer_handler(callback: CallbackQuery) -> None:
     question_index = int(question_index_text)
     option_index = int(option_index_text)
 
-    state = user_quiz_state[user_id]
-    current_question_index = state["question_index"]
+    current_question_index = int(session["question_index"])
 
     if question_index != current_question_index:
         await remove_old_buttons(callback)
@@ -115,16 +127,13 @@ async def quiz_answer_handler(callback: CallbackQuery) -> None:
 
     await mark_answer_selected(callback, question_index, option_index)
 
-    scores = state["scores"]
     option_scores = quiz_service.get_option_scores(question_index, option_index)
-
-    for animal_id, points in option_scores.items():
-        scores[animal_id] = scores.get(animal_id, 0) + points
+    scores = await add_scores(user_id, option_scores)
 
     if quiz_service.is_last_question(question_index):
-        await send_result(callback, user_id)
+        await send_result(callback, user_id, scores)
     else:
-        state["question_index"] = question_index + 1
+        await set_question_index(user_id, question_index + 1)
         await send_question(callback, user_id)
 
     await callback.answer("Ответ принят!")
@@ -133,8 +142,15 @@ async def quiz_answer_handler(callback: CallbackQuery) -> None:
 async def send_question(callback: CallbackQuery, user_id: int) -> None:
     """Send current quiz question to user."""
 
-    state = user_quiz_state[user_id]
-    question_index = state["question_index"]
+    session = await get_quiz_session(user_id)
+
+    if session is None:
+        await callback.message.answer(
+            "Викторина не найдена. Нажми «🐾 Начать викторину»."
+        )
+        return
+
+    question_index = int(session["question_index"])
     question = quiz_service.get_question(question_index)
 
     total_questions = quiz_service.get_total_questions_count()
@@ -152,7 +168,7 @@ async def send_question(callback: CallbackQuery, user_id: int) -> None:
         reply_markup=get_question_keyboard(question, question_index),
     )
 
-    user_quiz_state[user_id]["quiz_message_ids"].append(sent_message.message_id)
+    await add_quiz_message_id(user_id, sent_message.message_id)
 
 
 async def mark_answer_selected(
@@ -194,13 +210,15 @@ async def remove_old_buttons(callback: CallbackQuery) -> None:
     await safe_remove_keyboard(callback)
 
 
-async def send_result(callback: CallbackQuery, user_id: int) -> None:
+async def send_result(
+    callback: CallbackQuery,
+    user_id: int,
+    scores: dict[str, int],
+) -> None:
     """Send quiz result to user."""
 
-    scores = user_quiz_state[user_id]["scores"]
     animal = quiz_service.get_result_animal(scores)
 
-    save_last_result(user_id, animal)
 
     await save_quiz_result(
         user=callback.from_user,
@@ -208,24 +226,19 @@ async def send_result(callback: CallbackQuery, user_id: int) -> None:
         scores=scores,
     )
 
-    quiz_message_ids = cancel_active_quiz(user_id)
+    quiz_message_ids = await delete_quiz_session(user_id)
     await safe_delete_messages_by_ids(callback.message, quiz_message_ids)
 
     await send_animal_result(callback.message, animal)
 
 
-def cancel_active_quiz(user_id: int) -> list[int]:
+async def cancel_active_quiz(user_id: int) -> list[int]:
     """Cancel active quiz for user and return quiz message ids."""
 
-    state = user_quiz_state.pop(user_id, None)
-
-    if state is None:
-        return []
-
-    return state.get("quiz_message_ids", [])
+    return await delete_quiz_session(user_id)
 
 
-def is_quiz_active(user_id: int) -> bool:
+async def is_quiz_active(user_id: int) -> bool:
     """Check whether user has an active quiz."""
 
-    return user_id in user_quiz_state
+    return await is_quiz_session_active(user_id)

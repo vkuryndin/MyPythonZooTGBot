@@ -1,0 +1,119 @@
+import json
+from typing import Any
+
+from bot.repositories.redis_client import get_redis_client
+
+
+QUIZ_SESSION_TTL_SECONDS = 60 * 60 * 2
+
+
+def _quiz_session_key(user_id: int) -> str:
+    """Build Redis key for user's active quiz session."""
+
+    return f"python_zoo:quiz_session:{user_id}"
+
+
+async def create_quiz_session(user_id: int) -> None:
+    """Create new active quiz session."""
+
+    session = {
+        "question_index": 0,
+        "scores": {},
+        "quiz_message_ids": [],
+    }
+
+    await save_quiz_session(user_id, session)
+
+
+async def get_quiz_session(user_id: int) -> dict[str, Any] | None:
+    """Get active quiz session from Redis."""
+
+    redis_client = get_redis_client()
+    raw_session = await redis_client.get(_quiz_session_key(user_id))
+
+    if raw_session is None:
+        return None
+
+    return json.loads(raw_session)
+
+
+async def save_quiz_session(user_id: int, session: dict[str, Any]) -> None:
+    """Save active quiz session to Redis."""
+
+    redis_client = get_redis_client()
+
+    await redis_client.set(
+        _quiz_session_key(user_id),
+        json.dumps(session, ensure_ascii=False),
+        ex=QUIZ_SESSION_TTL_SECONDS,
+    )
+
+
+async def delete_quiz_session(user_id: int) -> list[int]:
+    """Delete active quiz session and return quiz message ids."""
+
+    redis_client = get_redis_client()
+    session = await get_quiz_session(user_id)
+
+    await redis_client.delete(_quiz_session_key(user_id))
+
+    if session is None:
+        return []
+
+    return session.get("quiz_message_ids", [])
+
+
+async def is_quiz_session_active(user_id: int) -> bool:
+    """Check whether user has active quiz session."""
+
+    redis_client = get_redis_client()
+    exists = await redis_client.exists(_quiz_session_key(user_id))
+
+    return bool(exists)
+
+
+async def add_quiz_message_id(user_id: int, message_id: int) -> None:
+    """Add question message id to active quiz session."""
+
+    session = await get_quiz_session(user_id)
+
+    if session is None:
+        return
+
+    session.setdefault("quiz_message_ids", []).append(message_id)
+
+    await save_quiz_session(user_id, session)
+
+
+async def add_scores(
+    user_id: int,
+    option_scores: dict[str, int],
+) -> dict[str, int]:
+    """Add selected answer scores to active quiz session."""
+
+    session = await get_quiz_session(user_id)
+
+    if session is None:
+        return {}
+
+    scores = session.setdefault("scores", {})
+
+    for animal_id, points in option_scores.items():
+        scores[animal_id] = scores.get(animal_id, 0) + points
+
+    await save_quiz_session(user_id, session)
+
+    return scores
+
+
+async def set_question_index(user_id: int, question_index: int) -> None:
+    """Set current question index in active quiz session."""
+
+    session = await get_quiz_session(user_id)
+
+    if session is None:
+        return
+
+    session["question_index"] = question_index
+
+    await save_quiz_session(user_id, session)

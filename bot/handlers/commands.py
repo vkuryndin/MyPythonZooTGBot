@@ -5,10 +5,11 @@ from aiogram.types import Message
 
 from bot.handlers.menu import show_main_menu
 from bot.handlers.result_view import show_last_result
-from bot.services.session_storage import get_last_result
+from bot.services.result_service import has_last_result
 from bot.handlers.quiz import cancel_active_quiz, is_quiz_active
 from bot.services.action_names import build_cancel_text, get_cancelled_action_name
 from bot.services.message_utils import safe_delete_messages_by_ids
+
 
 router = Router()
 
@@ -48,7 +49,7 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
     user_id = message.from_user.id
 
     current_state = await state.get_state()
-    quiz_active = is_quiz_active(user_id)
+    quiz_active=await is_quiz_active(user_id),
 
     action_name = get_cancelled_action_name(
         current_state=current_state,
@@ -65,10 +66,10 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
 
     await state.clear()
 
-    quiz_message_ids = cancel_active_quiz(user_id)
+    quiz_message_ids = await cancel_active_quiz(user_id)
     await safe_delete_messages_by_ids(message, quiz_message_ids)
 
-    if get_last_result(user_id) is not None:
+    if await has_last_result(user_id):
         await message.answer(cancel_text)
 
         await show_last_result(

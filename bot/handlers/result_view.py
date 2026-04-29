@@ -7,7 +7,7 @@ from aiogram.types import CallbackQuery, FSInputFile, Message
 from bot.keyboards.main_menu import get_main_menu_keyboard
 from bot.keyboards.quiz_keyboards import get_result_keyboard
 from bot.services.message_utils import safe_delete_callback_message
-from bot.services.session_storage import get_last_result
+from bot.services.result_service import get_last_result_animal
 
 
 router = Router()
@@ -64,7 +64,7 @@ async def show_last_result(
 ) -> None:
     """Show user's last quiz result or return to main menu."""
 
-    animal = get_last_result(user_id)
+    animal = await get_last_result_animal(user_id)
 
     if animal is None:
         await message.answer(

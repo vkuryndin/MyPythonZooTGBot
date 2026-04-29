@@ -23,7 +23,7 @@ from bot.services.message_utils import (
     safe_delete_message,
     safe_delete_message_by_id,
 )
-from bot.services.session_storage import get_last_result
+from bot.services.result_service import get_last_result_animal
 from bot.states.user_states import ContactStaffState, FeedbackState
 from bot.services.action_names import build_cancel_text, get_cancelled_action_name
 
@@ -43,7 +43,7 @@ FEEDBACK_STEPS = [
 async def share_result_handler(callback: CallbackQuery) -> None:
     """Show social share buttons for user's quiz result."""
 
-    animal = get_last_result(callback.from_user.id)
+    animal = await get_last_result_animal(callback.from_user.id)
 
     if animal is None:
         await callback.answer("Сначала пройди викторину 🙂")
@@ -126,7 +126,7 @@ async def share_result_handler(callback: CallbackQuery) -> None:
 async def contact_staff_handler(callback: CallbackQuery, state: FSMContext) -> None:
     """Ask user to choose contact delivery method."""
 
-    animal = get_last_result(callback.from_user.id)
+    animal = await get_last_result_animal(callback.from_user.id)
 
     if animal is None:
         await callback.answer("Сначала пройди викторину 🙂")
@@ -146,7 +146,7 @@ async def contact_staff_handler(callback: CallbackQuery, state: FSMContext) -> N
 async def contact_method_handler(callback: CallbackQuery, state: FSMContext) -> None:
     """Handle selected contact delivery method."""
 
-    animal = get_last_result(callback.from_user.id)
+    animal = await get_last_result_animal(callback.from_user.id)
 
     if animal is None:
         await callback.answer("Сначала пройди викторину 🙂")
@@ -293,7 +293,7 @@ async def send_contact_to_email(subject: str, body: str) -> tuple[str, str]:
 async def leave_feedback_handler(callback: CallbackQuery, state: FSMContext) -> None:
     """Start multi-step quiz feedback."""
 
-    animal = get_last_result(callback.from_user.id)
+    animal = await get_last_result_animal(callback.from_user.id)
 
     if animal is None:
         await callback.answer("Сначала пройди викторину 🙂")

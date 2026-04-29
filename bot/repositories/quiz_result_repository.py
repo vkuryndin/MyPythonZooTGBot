@@ -37,3 +37,28 @@ async def save_quiz_result(
     )
 
     return int(row["id"])
+
+async def get_last_quiz_result(user_id: int) -> dict | None:
+    """Get user's latest quiz result from PostgreSQL."""
+
+    pool = get_pool()
+
+    row = await pool.fetchrow(
+        """
+        SELECT
+            animal_id,
+            animal_name,
+            scores,
+            created_at
+        FROM quiz_results
+        WHERE telegram_user_id = $1
+        ORDER BY created_at DESC, id DESC
+        LIMIT 1
+        """,
+        user_id,
+    )
+
+    if row is None:
+        return None
+
+    return dict(row)

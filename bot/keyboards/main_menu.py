@@ -5,11 +5,6 @@ def get_main_menu_keyboard(
     has_result: bool,
     include_home_button: bool = False,
 ) -> InlineKeyboardMarkup:
-    """Create the main menu keyboard.
-
-    If user already has a quiz result, show additional result actions.
-    """
-
     keyboard = []
 
     if has_result:
@@ -82,8 +77,6 @@ def get_main_menu_keyboard(
 
 
 def get_back_to_main_menu_keyboard() -> InlineKeyboardMarkup:
-    """Create keyboard with a button back to the main menu."""
-
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -97,8 +90,6 @@ def get_back_to_main_menu_keyboard() -> InlineKeyboardMarkup:
 
 
 def get_back_to_result_keyboard() -> InlineKeyboardMarkup:
-    """Create keyboard with a button back to the last quiz result."""
-
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -110,9 +101,8 @@ def get_back_to_result_keyboard() -> InlineKeyboardMarkup:
         ]
     )
 
-def get_adoption_keyboard(has_result: bool) -> InlineKeyboardMarkup:
-    """Create keyboard for adoption information screen."""
 
+def get_adoption_keyboard(has_result: bool) -> InlineKeyboardMarkup:
     contact_callback = "contact_staff:result" if has_result else "contact_staff:main"
     back_callback = "back_to_result" if has_result else "main_menu"
 

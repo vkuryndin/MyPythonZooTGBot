@@ -17,8 +17,6 @@ def build_result_text(
     animal: dict[str, Any],
     prefix_text: str | None = None,
 ) -> str:
-    """Build quiz result text."""
-
     result_text = (
         f"🎉 Твоё тотемное животное — {animal['name']}!\n\n"
         f"{animal['description']}"
@@ -35,8 +33,6 @@ async def send_animal_result(
     animal: dict[str, Any],
     prefix_text: str | None = None,
 ) -> None:
-    """Send animal result with photo if image exists."""
-
     result_text = build_result_text(
         animal=animal,
         prefix_text=prefix_text,
@@ -62,8 +58,6 @@ async def show_last_result(
     user_id: int,
     prefix_text: str | None = None,
 ) -> None:
-    """Show user's last quiz result or return to main menu."""
-
     animal = await get_last_result_animal(user_id)
 
     if animal is None:
@@ -82,8 +76,6 @@ async def show_last_result(
 
 @router.callback_query(lambda callback: callback.data == "back_to_result")
 async def back_to_result_handler(callback: CallbackQuery) -> None:
-    """Return user to the last quiz result screen."""
-
     await safe_delete_callback_message(callback)
 
     await show_last_result(
@@ -92,9 +84,8 @@ async def back_to_result_handler(callback: CallbackQuery) -> None:
     )
     await callback.answer()
 
-async def send_result_actions_menu(message: Message, animal: dict) -> None:
-    """Send result actions menu without resending animal photo."""
 
+async def send_result_actions_menu(message: Message, animal: dict[str, Any]) -> None:
     await message.answer(
         f"Что хочешь сделать дальше с результатом «{animal['name']}»? 🐾",
         reply_markup=get_result_keyboard(),

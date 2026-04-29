@@ -1,6 +1,5 @@
 import asyncio
 import random
-import uuid
 from typing import Any
 
 from aiogram import F, Router
@@ -14,6 +13,7 @@ from bot.handlers.result_view import send_animal_result, show_last_result
 from bot.keyboards.quiz_keyboards import get_question_keyboard
 from bot.repositories.quiz_result_repository import save_quiz_result
 from bot.repositories.quiz_session_repository import (
+    acquire_quiz_answer_lock,
     add_image_tags,
     add_quiz_message_id,
     add_scores,
@@ -21,9 +21,9 @@ from bot.repositories.quiz_session_repository import (
     delete_quiz_session,
     get_quiz_session,
     is_quiz_session_active,
+    release_quiz_answer_lock,
     set_question_position,
 )
-from bot.repositories.redis_client import get_redis_client
 from bot.services.message_utils import (
     safe_delete_callback_message,
     safe_delete_message,
@@ -35,8 +35,6 @@ from bot.services.result_service import has_last_result
 
 
 router = Router()
-
-QUIZ_ANSWER_LOCK_TTL_SECONDS = 10
 
 
 class ActiveQuizFilter(BaseFilter):
@@ -52,45 +50,6 @@ def get_callback_message(callback: CallbackQuery) -> Message | None:
         return callback.message
 
     return None
-
-
-def _quiz_answer_lock_key(user_id: int) -> str:
-    return f"python_zoo:quiz_answer_lock:{user_id}"
-
-
-async def acquire_quiz_answer_lock(user_id: int) -> str | None:
-    redis_client = get_redis_client()
-    token = uuid.uuid4().hex
-
-    acquired = await redis_client.set(
-        _quiz_answer_lock_key(user_id),
-        token,
-        ex=QUIZ_ANSWER_LOCK_TTL_SECONDS,
-        nx=True,
-    )
-
-    if acquired:
-        return token
-
-    return None
-
-
-async def release_quiz_answer_lock(user_id: int, token: str) -> None:
-    redis_client = get_redis_client()
-
-    script = """
-    if redis.call("get", KEYS[1]) == ARGV[1] then
-        return redis.call("del", KEYS[1])
-    end
-    return 0
-    """
-
-    await redis_client.eval(
-        script,
-        1,
-        _quiz_answer_lock_key(user_id),
-        token,
-    )
 
 
 def parse_quiz_answer_callback(callback_data: str | None) -> tuple[int, int] | None:

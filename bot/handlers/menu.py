@@ -57,13 +57,10 @@ ABOUT_ADOPTION_TEXT = (
 
 
 async def show_start_screen(message: Message) -> None:
-    """Show start screen with different text for new and returning users."""
-
     user_id = message.from_user.id
     user_has_result = await has_last_result(user_id)
 
     text = REPEAT_START_TEXT if user_has_result else FIRST_START_TEXT
-    keyboard = get_main_menu_keyboard(has_result=user_has_result)
 
     await send_menu_message(
         message=message,
@@ -79,10 +76,6 @@ async def show_main_menu(
     text: str | None = None,
     include_home_button: bool = False,
 ) -> None:
-    """Send main menu with dynamic buttons.
-    :rtype: None
-    """
-
     user_has_result = await has_last_result(user_id)
 
     await message.answer(
@@ -100,8 +93,6 @@ async def send_menu_message(
     has_result: bool,
     use_logo: bool = False,
 ) -> None:
-    """Send menu message with optional logo."""
-
     keyboard = get_main_menu_keyboard(has_result=has_result)
 
     if use_logo and LOGO_PATH.exists():
@@ -120,8 +111,6 @@ async def send_menu_message(
 
 @router.callback_query(lambda callback: callback.data == "main_menu")
 async def main_menu_handler(callback: CallbackQuery, state: FSMContext) -> None:
-    """Show main menu."""
-
     await state.clear()
     await safe_delete_callback_message(callback)
 
@@ -140,8 +129,6 @@ async def main_menu_handler(callback: CallbackQuery, state: FSMContext) -> None:
     }
 )
 async def about_adoption_handler(callback: CallbackQuery) -> None:
-    """Show information about the animal adoption program."""
-
     user_has_result = await has_last_result(callback.from_user.id)
 
     await safe_delete_callback_message(callback)

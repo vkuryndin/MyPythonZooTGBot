@@ -2,8 +2,6 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 def get_question_keyboard(question: dict, question_index: int) -> InlineKeyboardMarkup:
-    """Create compact inline keyboard for a quiz question."""
-
     buttons = []
     row = []
 
@@ -35,8 +33,6 @@ def get_question_keyboard(question: dict, question_index: int) -> InlineKeyboard
 
 
 def get_result_keyboard() -> InlineKeyboardMarkup:
-    """Create inline keyboard shown after quiz result."""
-
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -51,7 +47,7 @@ def get_result_keyboard() -> InlineKeyboardMarkup:
                     callback_data="share_result",
                 )
             ],
-         [
+            [
                 InlineKeyboardButton(
                     text="💬 Связаться с сотрудником",
                     callback_data="contact_staff",
@@ -75,6 +71,5 @@ def get_result_keyboard() -> InlineKeyboardMarkup:
                     callback_data="generate_result_image",
                 )
             ],
-
         ]
     )

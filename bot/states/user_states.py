@@ -8,6 +8,7 @@ class ContactStaffState(StatesGroup):
     waiting_for_reply_contact = State()
     waiting_for_message = State()
 
+
 class FeedbackState(StatesGroup):
     """States for collecting user feedback."""
 

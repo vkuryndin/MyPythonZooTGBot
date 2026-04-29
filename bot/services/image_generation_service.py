@@ -1,6 +1,7 @@
 import asyncio
 import hashlib
 import logging
+import time
 from pathlib import Path
 from typing import Any
 
@@ -57,8 +58,6 @@ ANIMAL_BASE_PROMPTS = {
 
 
 def build_result_prompt(animal: dict[str, Any], image_tags: list[str]) -> str:
-    """Build prompt for image generation."""
-
     animal_id = animal["id"]
     base_prompt = ANIMAL_BASE_PROMPTS.get(
         animal_id,
@@ -89,8 +88,6 @@ def build_result_prompt(animal: dict[str, Any], image_tags: list[str]) -> str:
 
 
 def _build_client() -> InferenceClient:
-    """Create Hugging Face inference client."""
-
     return InferenceClient(
         provider=settings.hf_provider,
         api_key=settings.huggingface_api_token,
@@ -102,8 +99,6 @@ def _generate_image_sync(
     model: str,
     output_path: Path,
 ) -> str | None:
-    """Generate image synchronously via Hugging Face SDK."""
-
     try:
         client = _build_client()
 
@@ -124,8 +119,6 @@ async def generate_result_image(
     animal: dict[str, Any],
     image_tags: list[str],
 ) -> str | None:
-    """Generate result image and return local file path."""
-
     if not settings.huggingface_api_token:
         logger.warning("HUGGINGFACE_API_TOKEN is not configured")
         return None
@@ -139,11 +132,33 @@ async def generate_result_image(
     output_path = cache_dir / f"{animal['id']}_{prompt_hash}.png"
 
     if output_path.exists():
+        logger.info("Generated image cache hit for animal_id=%s", animal["id"])
         return str(output_path)
 
-    return await asyncio.to_thread(
+    logger.info("Starting image generation for animal_id=%s", animal["id"])
+    started_at = time.perf_counter()
+
+    generated_path = await asyncio.to_thread(
         _generate_image_sync,
         prompt,
         settings.hf_image_model,
         output_path,
     )
+
+    elapsed_seconds = time.perf_counter() - started_at
+
+    if generated_path is None:
+        logger.warning(
+            "Image generation failed for animal_id=%s duration=%.2fs",
+            animal["id"],
+            elapsed_seconds,
+        )
+        return None
+
+    logger.info(
+        "Image generation completed for animal_id=%s duration=%.2fs",
+        animal["id"],
+        elapsed_seconds,
+    )
+
+    return generated_path

@@ -1,8 +1,12 @@
 import asyncio
+import logging
 import smtplib
 from email.message import EmailMessage
 
 from bot.config import settings
+
+
+logger = logging.getLogger(__name__)
 
 
 class EmailConfigurationError(RuntimeError):
@@ -10,8 +14,6 @@ class EmailConfigurationError(RuntimeError):
 
 
 def _validate_email_settings() -> None:
-    """Validate required SMTP settings."""
-
     required_values = [
         settings.smtp_host,
         settings.smtp_port,
@@ -27,8 +29,6 @@ def _validate_email_settings() -> None:
 
 
 def _send_email_sync(subject: str, body: str) -> None:
-    """Send email synchronously via SMTP."""
-
     _validate_email_settings()
 
     message = EmailMessage()
@@ -48,6 +48,16 @@ def _send_email_sync(subject: str, body: str) -> None:
 
 
 async def send_contact_email(subject: str, body: str) -> None:
-    """Send contact email without blocking the bot event loop."""
+    try:
+        logger.info("Sending email message to staff")
 
-    await asyncio.to_thread(_send_email_sync, subject, body)
+        await asyncio.to_thread(
+            _send_email_sync,
+            subject,
+            body,
+        )
+
+        logger.info("Email message sent to staff")
+    except Exception:
+        logger.exception("Failed to send email message to staff")
+        raise

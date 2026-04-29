@@ -6,10 +6,28 @@ from aiogram.types import User
 from bot.repositories.database import get_pool
 
 
+def _decode_json_field(value: Any, default: Any) -> Any:
+    """Decode JSON/JSONB field returned by asyncpg."""
+
+    if value is None:
+        return default
+
+    if isinstance(value, dict | list):
+        return value
+
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            return default
+
+    return value
+
+
 async def save_quiz_result(
-    user,
-    animal: dict,
-    scores: dict,
+    user: User,
+    animal: dict[str, Any],
+    scores: dict[str, int],
     image_tags: list[str] | None = None,
 ) -> None:
     """Save quiz result to PostgreSQL."""
@@ -38,7 +56,8 @@ async def save_quiz_result(
         json.dumps(image_tags or [], ensure_ascii=False),
     )
 
-async def get_last_quiz_result(user_id: int) -> dict | None:
+
+async def get_last_quiz_result(user_id: int) -> dict[str, Any] | None:
     """Get user's latest quiz result from PostgreSQL."""
 
     pool = get_pool()
@@ -49,6 +68,7 @@ async def get_last_quiz_result(user_id: int) -> dict | None:
             animal_id,
             animal_name,
             scores,
+            image_tags,
             created_at
         FROM quiz_results
         WHERE telegram_user_id = $1
@@ -61,4 +81,8 @@ async def get_last_quiz_result(user_id: int) -> dict | None:
     if row is None:
         return None
 
-    return dict(row)
+    result = dict(row)
+    result["scores"] = _decode_json_field(result.get("scores"), {})
+    result["image_tags"] = _decode_json_field(result.get("image_tags"), [])
+
+    return result

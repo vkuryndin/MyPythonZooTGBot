@@ -52,6 +52,7 @@ async def safe_remove_keyboard(callback: CallbackQuery) -> None:
     except TelegramBadRequest:
         pass
 
+
 async def safe_delete_messages_by_ids(
     message: Message,
     message_ids: list[int],

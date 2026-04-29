@@ -28,3 +28,11 @@ Thumbs.db
 # Local files
 *.sqlite3
 *.db
+
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.idea/
+generated_images/

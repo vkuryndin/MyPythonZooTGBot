@@ -13,11 +13,17 @@ def _quiz_session_key(user_id: int) -> str:
     return f"python_zoo:quiz_session:{user_id}"
 
 
-async def create_quiz_session(user_id: int) -> None:
+async def create_quiz_session(
+    user_id: int,
+    question_order: list[int],
+    option_orders: dict[str, list[int]],
+) -> None:
     """Create new active quiz session."""
 
     session = {
-        "question_index": 0,
+        "question_position": 0,
+        "question_order": question_order,
+        "option_orders": option_orders,
         "scores": {},
         "quiz_message_ids": [],
     }
@@ -106,14 +112,20 @@ async def add_scores(
     return scores
 
 
-async def set_question_index(user_id: int, question_index: int) -> None:
-    """Set current question index in active quiz session."""
+async def set_question_position(user_id: int, question_position: int) -> None:
+    """Set current question position in shuffled quiz session."""
 
     session = await get_quiz_session(user_id)
 
     if session is None:
         return
 
-    session["question_index"] = question_index
+    session["question_position"] = question_position
 
     await save_quiz_session(user_id, session)
+
+
+async def set_question_index(user_id: int, question_index: int) -> None:
+    """Backward-compatible alias for older quiz code."""
+
+    await set_question_position(user_id, question_index)

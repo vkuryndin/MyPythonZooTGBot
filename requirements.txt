@@ -3,3 +3,4 @@ pydantic-settings>=2.6,<3
 python-dotenv>=1.0,<2
 asyncpg>=0.29,<1
 redis>=5,<8
+aiohttp>=3.9,<4

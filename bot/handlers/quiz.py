@@ -1,4 +1,6 @@
 import asyncio
+import random
+from typing import Any
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
@@ -17,7 +19,7 @@ from bot.repositories.quiz_session_repository import (
     delete_quiz_session,
     get_quiz_session,
     is_quiz_session_active,
-    set_question_index,
+    set_question_position,
 )
 from bot.services.message_utils import (
     safe_delete_callback_message,
@@ -29,7 +31,6 @@ from bot.services.quiz_service import quiz_service
 from bot.services.result_service import has_last_result
 
 
-
 router = Router()
 
 
@@ -37,12 +38,17 @@ class ActiveQuizFilter(BaseFilter):
     """Filter messages from users who have an active quiz session."""
 
     async def __call__(self, message: Message) -> bool:
+        """Check whether message author has an active quiz."""
+
+        if message.from_user is None:
+            return False
+
         return await is_quiz_session_active(message.from_user.id)
 
 
 @router.callback_query(lambda callback: callback.data == "start_quiz")
 async def start_quiz_handler(callback: CallbackQuery, state: FSMContext) -> None:
-    """Start quiz from the first question."""
+    """Start quiz from the first shuffled question."""
 
     await state.clear()
     await safe_delete_callback_message(callback)
@@ -52,7 +58,14 @@ async def start_quiz_handler(callback: CallbackQuery, state: FSMContext) -> None
     old_message_ids = await delete_quiz_session(user_id)
     await safe_delete_messages_by_ids(callback.message, old_message_ids)
 
-    await create_quiz_session(user_id)
+    question_order, option_orders = build_quiz_order()
+
+    await create_quiz_session(
+        user_id=user_id,
+        question_order=question_order,
+        option_orders=option_orders,
+    )
+
     await send_question(callback, user_id)
 
     await callback.answer()
@@ -114,33 +127,61 @@ async def quiz_answer_handler(callback: CallbackQuery) -> None:
         await callback.answer("Эта викторина уже завершена или не начата 🙂")
         return
 
-    _, question_index_text, option_index_text = callback.data.split(":")
-    question_index = int(question_index_text)
-    option_index = int(option_index_text)
+    if not is_new_quiz_session_format(session):
+        await delete_quiz_session(user_id)
+        await remove_old_buttons(callback)
+        await callback.answer("Викторина обновилась. Запусти её заново 🙂")
+        return
 
-    current_question_index = int(session["question_index"])
+    _, question_position_text, displayed_option_index_text = callback.data.split(":")
+    question_position = int(question_position_text)
+    displayed_option_index = int(displayed_option_index_text)
 
-    if question_index != current_question_index:
+    current_question_position = int(session["question_position"])
+
+    if question_position != current_question_position:
         await remove_old_buttons(callback)
         await callback.answer("Этот вопрос уже неактуален 🙂")
         return
 
-    await mark_answer_selected(callback, question_index, option_index)
+    original_question_index = get_original_question_index(
+        session=session,
+        question_position=question_position,
+    )
 
-    option_scores = quiz_service.get_option_scores(question_index, option_index)
+    option_order = get_option_order(
+        session=session,
+        original_question_index=original_question_index,
+    )
+
+    original_option_index = option_order[displayed_option_index]
+
+    await mark_answer_selected(
+        callback=callback,
+        session=session,
+        question_position=question_position,
+        displayed_option_index=displayed_option_index,
+        original_question_index=original_question_index,
+        option_order=option_order,
+    )
+
+    option_scores = quiz_service.get_option_scores(
+        original_question_index,
+        original_option_index,
+    )
     scores = await add_scores(user_id, option_scores)
 
-    if quiz_service.is_last_question(question_index):
+    if is_last_question_position(session, question_position):
         await send_result(callback, user_id, scores)
     else:
-        await set_question_index(user_id, question_index + 1)
+        await set_question_position(user_id, question_position + 1)
         await send_question(callback, user_id)
 
     await callback.answer("Ответ принят!")
 
 
 async def send_question(callback: CallbackQuery, user_id: int) -> None:
-    """Send current quiz question to user."""
+    """Send current shuffled quiz question to user."""
 
     session = await get_quiz_session(user_id)
 
@@ -150,10 +191,31 @@ async def send_question(callback: CallbackQuery, user_id: int) -> None:
         )
         return
 
-    question_index = int(session["question_index"])
-    question = quiz_service.get_question(question_index)
+    if not is_new_quiz_session_format(session):
+        await delete_quiz_session(user_id)
+        await callback.message.answer(
+            "Викторина обновилась. Нажми «🐾 Начать викторину» ещё раз."
+        )
+        return
 
-    total_questions = quiz_service.get_total_questions_count()
+    question_position = int(session["question_position"])
+
+    original_question_index = get_original_question_index(
+        session=session,
+        question_position=question_position,
+    )
+
+    option_order = get_option_order(
+        session=session,
+        original_question_index=original_question_index,
+    )
+
+    question = build_display_question(
+        original_question_index=original_question_index,
+        option_order=option_order,
+    )
+
+    total_questions = len(session["question_order"])
 
     options_text = "\n".join(
         f"{option_index + 1}. {option['text']}"
@@ -161,11 +223,11 @@ async def send_question(callback: CallbackQuery, user_id: int) -> None:
     )
 
     sent_message = await callback.message.answer(
-        f"Вопрос {question_index + 1} из {total_questions}\n\n"
+        f"Вопрос {question_position + 1} из {total_questions}\n\n"
         f"{question['text']}\n\n"
         f"{options_text}\n\n"
         "Выбери номер ответа 👇",
-        reply_markup=get_question_keyboard(question, question_index),
+        reply_markup=get_question_keyboard(question, question_position),
     )
 
     await add_quiz_message_id(user_id, sent_message.message_id)
@@ -173,26 +235,33 @@ async def send_question(callback: CallbackQuery, user_id: int) -> None:
 
 async def mark_answer_selected(
     callback: CallbackQuery,
-    question_index: int,
-    option_index: int,
+    session: dict[str, Any],
+    question_position: int,
+    displayed_option_index: int,
+    original_question_index: int,
+    option_order: list[int],
 ) -> None:
     """Remove old buttons and show selected answer in the old question message."""
 
-    question = quiz_service.get_question(question_index)
-    total_questions = quiz_service.get_total_questions_count()
+    question = build_display_question(
+        original_question_index=original_question_index,
+        option_order=option_order,
+    )
+
+    total_questions = len(session["question_order"])
 
     options_text = "\n".join(
         f"{index + 1}. {option['text']}"
         for index, option in enumerate(question["options"])
     )
 
-    selected_option_text = question["options"][option_index]["text"]
+    selected_option_text = question["options"][displayed_option_index]["text"]
 
     text = (
-        f"Вопрос {question_index + 1} из {total_questions}\n\n"
+        f"Вопрос {question_position + 1} из {total_questions}\n\n"
         f"{question['text']}\n\n"
         f"{options_text}\n\n"
-        f"✅ Твой ответ: {option_index + 1}. {selected_option_text}"
+        f"✅ Твой ответ: {displayed_option_index + 1}. {selected_option_text}"
     )
 
     try:
@@ -219,7 +288,6 @@ async def send_result(
 
     animal = quiz_service.get_result_animal(scores)
 
-
     await save_quiz_result(
         user=callback.from_user,
         animal=animal,
@@ -242,3 +310,80 @@ async def is_quiz_active(user_id: int) -> bool:
     """Check whether user has an active quiz."""
 
     return await is_quiz_session_active(user_id)
+
+
+def build_quiz_order() -> tuple[list[int], dict[str, list[int]]]:
+    """Build shuffled question order and shuffled option order for each question."""
+
+    total_questions = quiz_service.get_total_questions_count()
+
+    question_order = list(range(total_questions))
+    random.shuffle(question_order)
+
+    option_orders = {}
+
+    for original_question_index in question_order:
+        question = quiz_service.get_question(original_question_index)
+        option_order = list(range(len(question["options"])))
+        random.shuffle(option_order)
+
+        option_orders[str(original_question_index)] = option_order
+
+    return question_order, option_orders
+
+
+def build_display_question(
+    original_question_index: int,
+    option_order: list[int],
+) -> dict[str, Any]:
+    """Build question object with options ordered for current user session."""
+
+    original_question = quiz_service.get_question(original_question_index)
+
+    return {
+        **original_question,
+        "options": [
+            original_question["options"][original_option_index]
+            for original_option_index in option_order
+        ],
+    }
+
+
+def is_new_quiz_session_format(session: dict[str, Any]) -> bool:
+    """Check whether Redis quiz session contains shuffled order fields."""
+
+    return (
+        "question_position" in session
+        and "question_order" in session
+        and "option_orders" in session
+    )
+
+
+def get_original_question_index(
+    session: dict[str, Any],
+    question_position: int,
+) -> int:
+    """Get original question index from shuffled session position."""
+
+    return int(session["question_order"][question_position])
+
+
+def get_option_order(
+    session: dict[str, Any],
+    original_question_index: int,
+) -> list[int]:
+    """Get shuffled option order for original question index."""
+
+    return [
+        int(option_index)
+        for option_index in session["option_orders"][str(original_question_index)]
+    ]
+
+
+def is_last_question_position(
+    session: dict[str, Any],
+    question_position: int,
+) -> bool:
+    """Check whether current shuffled question position is the last one."""
+
+    return question_position + 1 >= len(session["question_order"])

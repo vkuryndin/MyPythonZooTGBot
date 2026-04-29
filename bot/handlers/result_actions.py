@@ -1091,6 +1091,9 @@ async def generate_result_image_handler(callback: CallbackQuery) -> None:
         )
         return
 
+    # Callback must be answered before long image generation.
+    await callback.answer("Начинаю генерацию картинки 🐾")
+
     result = await get_last_quiz_result(callback.from_user.id)
     image_tags = result.get("image_tags", []) if result else []
 
@@ -1115,8 +1118,6 @@ async def generate_result_image_handler(callback: CallbackQuery) -> None:
             message=message,
             animal=animal,
         )
-
-        await callback.answer()
         return
 
     await message.answer_photo(
@@ -1131,5 +1132,3 @@ async def generate_result_image_handler(callback: CallbackQuery) -> None:
         message=message,
         animal=animal,
     )
-
-    await callback.answer()

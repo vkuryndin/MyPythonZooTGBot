@@ -17,6 +17,8 @@ router = Router()
 BASE_DIR = Path(__file__).resolve().parents[2]
 LOGO_PATH = BASE_DIR / "assets" / "images" / "mz_logo.jpg"
 
+ADOPTION_IMAGE_PATH = BASE_DIR / "assets" / "images" / "opeka.jpg"
+
 
 FIRST_START_TEXT = (
     "Привет! 🐾\n\n"
@@ -52,10 +54,17 @@ ABOUT_ADOPTION_TEXT = (
     "Это способ поддержать зоопарк и внести вклад в сохранение "
     "биоразнообразия.\n\n"
     "Подробнее о программе «Возьми животное под опеку» можно узнать "
-    "на официальном сайте Московского зоопарка:\n"
+    "на официальном сайте Московского зоопарка:\n\n"
     "https://moscowzoo.ru/about/guardianship\n\n"
-   )
-
+    "Контакты программы опеки:\n"
+    "E-mail: zoofriends@moscowzoo.ru\n"
+    "Телефон: +7 (962) 971-38-75\n\n"
+    "По вопросам опеки можно обращаться с 10:00 до 17:00.\n"
+    "Часы работы:\n"
+    "Пн.–Пт. с 9:00 до 18:00\n"
+    "Сб.–Вс. — выходные дни\n\n"
+    "Если хочешь, можешь также связаться с сотрудником прямо через бота."
+)
 
 async def show_start_screen(message: Message) -> None:
     user_id = message.from_user.id
@@ -129,13 +138,42 @@ async def main_menu_handler(callback: CallbackQuery, state: FSMContext) -> None:
         "about_adoption:result",
     }
 )
+@router.callback_query(
+    lambda callback: callback.data in {
+        "about_adoption",
+        "about_adoption:main",
+        "about_adoption:result",
+    }
+)
+@router.callback_query(
+    lambda callback: callback.data in {
+        "about_adoption",
+        "about_adoption:main",
+        "about_adoption:result",
+    }
+)
+@router.callback_query(
+    lambda callback: callback.data in {
+        "about_adoption",
+        "about_adoption:main",
+        "about_adoption:result",
+    }
+)
 async def about_adoption_handler(callback: CallbackQuery) -> None:
     user_has_result = await has_last_result(callback.from_user.id)
 
     await safe_delete_callback_message(callback)
 
-    await callback.message.answer(
-        ABOUT_ADOPTION_TEXT,
-        reply_markup=get_adoption_keyboard(has_result=user_has_result),
-    )
+    if ADOPTION_IMAGE_PATH.exists():
+        await callback.message.answer_photo(
+            photo=FSInputFile(ADOPTION_IMAGE_PATH),
+            caption=ABOUT_ADOPTION_TEXT,
+            reply_markup=get_adoption_keyboard(has_result=user_has_result),
+        )
+    else:
+        await callback.message.answer(
+            ABOUT_ADOPTION_TEXT,
+            reply_markup=get_adoption_keyboard(has_result=user_has_result),
+        )
+
     await callback.answer()

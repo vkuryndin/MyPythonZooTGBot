@@ -1,3 +1,6 @@
+from urllib.parse import urlparse
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +29,20 @@ class Settings(BaseSettings):
     hf_image_model: str = "black-forest-labs/FLUX.1-schnell"
     hf_image_cache_dir: str = "generated_images"
     hf_provider: str = "hf-inference"
+
+    @field_validator("bot_link")
+    @classmethod
+    def validate_bot_link(cls, value: str) -> str:
+        parsed = urlparse(value.strip())
+        allowed_domains = {"t.me", "telegram.me"}
+
+        if parsed.scheme != "https" or parsed.netloc.lower() not in allowed_domains:
+            raise ValueError("BOT_LINK must be a Telegram HTTPS link")
+
+        if not parsed.path or parsed.path == "/":
+            raise ValueError("BOT_LINK must contain bot username")
+
+        return value.strip().rstrip("/")
 
     model_config = SettingsConfigDict(
         env_file=".env",

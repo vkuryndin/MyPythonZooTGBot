@@ -1,5 +1,6 @@
 import json
 from typing import Any
+import uuid
 
 from bot.repositories.redis_client import get_redis_client
 
@@ -149,3 +150,41 @@ async def set_question_index(user_id: int, question_index: int) -> None:
     """Backward-compatible alias for older quiz code."""
 
     await set_question_position(user_id, question_index)
+
+def _quiz_answer_lock_key(user_id: int) -> str:
+    return f"python_zoo:quiz_answer_lock:{user_id}"
+
+
+async def acquire_quiz_answer_lock(user_id: int) -> str | None:
+    redis_client = get_redis_client()
+    token = uuid.uuid4().hex
+
+    acquired = await redis_client.set(
+        _quiz_answer_lock_key(user_id),
+        token,
+        ex=10,
+        nx=True,
+    )
+
+    if acquired:
+        return token
+
+    return None
+
+
+async def release_quiz_answer_lock(user_id: int, token: str) -> None:
+    redis_client = get_redis_client()
+
+    script = """
+    if redis.call("get", KEYS[1]) == ARGV[1] then
+        return redis.call("del", KEYS[1])
+    end
+    return 0
+    """
+
+    await redis_client.eval(
+        script,
+        1,
+        _quiz_answer_lock_key(user_id),
+        token,
+    )

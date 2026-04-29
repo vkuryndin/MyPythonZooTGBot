@@ -16,8 +16,6 @@ router = Router()
 
 @router.message(Command("help"))
 async def help_handler(message: Message) -> None:
-    """Show bot help."""
-
     await message.answer(
         "Справка по боту 🐾\n\n"
         "Я помогу пройти викторину и узнать твоё тотемное животное "
@@ -34,8 +32,6 @@ async def help_handler(message: Message) -> None:
 
 @router.message(Command("result"))
 async def result_handler(message: Message) -> None:
-    """Show last quiz result."""
-
     await show_last_result(
         message=message,
         user_id=message.from_user.id,
@@ -44,8 +40,6 @@ async def result_handler(message: Message) -> None:
 
 @router.message(Command("cancel"))
 async def cancel_handler(message: Message, state: FSMContext) -> None:
-    """Cancel current action and return to result or main menu."""
-
     user_id = message.from_user.id
 
     current_state = await state.get_state()
@@ -55,7 +49,6 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
         current_state=current_state,
         quiz_active=quiz_active,
     )
-    cancel_text = build_cancel_text(action_name)
 
     if action_name is None:
         await message.answer(
@@ -69,9 +62,10 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
     quiz_message_ids = await cancel_active_quiz(user_id)
     await safe_delete_messages_by_ids(message, quiz_message_ids)
 
+    cancel_text = build_cancel_text(action_name)
+
     if await has_last_result(user_id):
         await message.answer(cancel_text)
-
         await show_last_result(
             message=message,
             user_id=user_id,

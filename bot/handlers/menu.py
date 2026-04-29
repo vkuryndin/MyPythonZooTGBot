@@ -16,22 +16,27 @@ router = Router()
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 LOGO_PATH = BASE_DIR / "assets" / "images" / "mz_logo.jpg"
-
 ADOPTION_IMAGE_PATH = BASE_DIR / "assets" / "images" / "opeka.jpg"
 
+ZOO_TELEGRAM_CHANNEL_TEXT = (
+    "Официальный Telegram-канал Московского зоопарка:\n"
+    "https://t.me/Moscowzoo_official"
+)
 
 FIRST_START_TEXT = (
     "Привет! 🐾\n\n"
     "Добро пожаловать в небольшую викторину Московского зоопарка.\n\n"
     "Сейчас мы узнаем, кто тебе ближе по характеру: загадочный манул, "
     "дружный сурикат, спокойный слон или кто-то ещё из обитателей зоопарка.\n\n"
-    "Отвечай на вопросы — а в конце я покажу твоё тотемное животное."
+    "Отвечай на вопросы — а в конце я покажу твоё тотемное животное.\n\n"
+    f"{ZOO_TELEGRAM_CHANNEL_TEXT}"
 )
 
 REPEAT_START_TEXT = (
     "С возвращением в Московский зоопарк! 🐾\n\n"
     "Твоё тотемное животное уже ждёт тебя. Можно вернуться к результату, "
     "поделиться им с друзьями, узнать про опеку или пройти викторину ещё раз.\n\n"
+    f"{ZOO_TELEGRAM_CHANNEL_TEXT}\n\n"
     "Что делаем?"
 )
 
@@ -56,15 +61,25 @@ ABOUT_ADOPTION_TEXT = (
     "Подробнее о программе «Возьми животное под опеку» можно узнать "
     "на официальном сайте Московского зоопарка:\n\n"
     "https://moscowzoo.ru/about/guardianship\n\n"
-    "Контакты программы опеки:\n"
-    "E-mail: zoofriends@moscowzoo.ru\n"
+    "Официальный Telegram-канал Московского зоопарка:\n\n"
+    "https://t.me/Moscowzoo_official\n\n"
+    "Контакты программы опеки:\n\n"
+    "E-mail: zoofriends@moscowzoo.ru\n\n"
     "Телефон: +7 (962) 971-38-75\n\n"
-    "По вопросам опеки можно обращаться с 10:00 до 17:00.\n"
-    "Часы работы:\n"
-    "Пн.–Пт. с 9:00 до 18:00\n"
+    "По вопросам опеки можно обращаться с 10:00 до 17:00.\n\n"
+    "Часы работы:\n\n"
+    "Пн.–Пт. с 9:00 до 18:00\n\n"
     "Сб.–Вс. — выходные дни\n\n"
     "Если хочешь, можешь также связаться с сотрудником прямо через бота."
 )
+
+
+def get_callback_message(callback: CallbackQuery) -> Message | None:
+    if isinstance(callback.message, Message):
+        return callback.message
+
+    return None
+
 
 async def show_start_screen(message: Message) -> None:
     user_id = message.from_user.id
@@ -121,11 +136,17 @@ async def send_menu_message(
 
 @router.callback_query(lambda callback: callback.data == "main_menu")
 async def main_menu_handler(callback: CallbackQuery, state: FSMContext) -> None:
+    message = get_callback_message(callback)
+
+    if message is None:
+        await callback.answer("Сообщение уже недоступно 🙂")
+        return
+
     await state.clear()
     await safe_delete_callback_message(callback)
 
     await show_main_menu(
-        message=callback.message,
+        message=message,
         user_id=callback.from_user.id,
     )
     await callback.answer()
@@ -138,40 +159,25 @@ async def main_menu_handler(callback: CallbackQuery, state: FSMContext) -> None:
         "about_adoption:result",
     }
 )
-@router.callback_query(
-    lambda callback: callback.data in {
-        "about_adoption",
-        "about_adoption:main",
-        "about_adoption:result",
-    }
-)
-@router.callback_query(
-    lambda callback: callback.data in {
-        "about_adoption",
-        "about_adoption:main",
-        "about_adoption:result",
-    }
-)
-@router.callback_query(
-    lambda callback: callback.data in {
-        "about_adoption",
-        "about_adoption:main",
-        "about_adoption:result",
-    }
-)
 async def about_adoption_handler(callback: CallbackQuery) -> None:
+    message = get_callback_message(callback)
+
+    if message is None:
+        await callback.answer("Сообщение уже недоступно 🙂")
+        return
+
     user_has_result = await has_last_result(callback.from_user.id)
 
     await safe_delete_callback_message(callback)
 
     if ADOPTION_IMAGE_PATH.exists():
-        await callback.message.answer_photo(
+        await message.answer_photo(
             photo=FSInputFile(ADOPTION_IMAGE_PATH),
             caption=ABOUT_ADOPTION_TEXT,
             reply_markup=get_adoption_keyboard(has_result=user_has_result),
         )
     else:
-        await callback.message.answer(
+        await message.answer(
             ABOUT_ADOPTION_TEXT,
             reply_markup=get_adoption_keyboard(has_result=user_has_result),
         )

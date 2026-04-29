@@ -9,8 +9,6 @@ ANIMALS_PATH = BASE_DIR / "data" / "animals.json"
 
 
 class QuizService:
-    """Service for loading quiz data and calculating quiz results."""
-
     def __init__(self) -> None:
         self.questions = self._load_json(QUESTIONS_PATH)
         self.animals = self._load_json(ANIMALS_PATH)
@@ -40,8 +38,6 @@ class QuizService:
         return self._find_animal_by_id(winner_id)
 
     def get_animal_by_id(self, animal_id: str) -> dict[str, Any]:
-        """Get animal by id."""
-
         return self._find_animal_by_id(animal_id)
 
     def _find_animal_by_id(self, animal_id: str) -> dict[str, Any]:
@@ -57,10 +53,9 @@ class QuizService:
             return json.load(file)
 
     def get_option_image_tags(self, question_index: int, option_index: int) -> list[str]:
-        """Return image tags for selected option."""
-
         question = self.get_question(question_index)
         option = question["options"][option_index]
         return option.get("image_tags", [])
+
 
 quiz_service = QuizService()

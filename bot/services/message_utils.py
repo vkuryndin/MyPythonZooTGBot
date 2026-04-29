@@ -3,8 +3,6 @@ from aiogram.types import CallbackQuery, Message
 
 
 async def safe_delete_callback_message(callback: CallbackQuery) -> None:
-    """Safely delete message related to callback."""
-
     if callback.message is None:
         return
 
@@ -12,8 +10,6 @@ async def safe_delete_callback_message(callback: CallbackQuery) -> None:
 
 
 async def safe_delete_message(message: Message | None) -> None:
-    """Safely delete Telegram message."""
-
     if message is None:
         return
 
@@ -27,8 +23,6 @@ async def safe_delete_message_by_id(
     message: Message,
     message_id: int | None,
 ) -> None:
-    """Safely delete message by id in the same chat."""
-
     if message_id is None:
         return
 
@@ -42,8 +36,6 @@ async def safe_delete_message_by_id(
 
 
 async def safe_remove_keyboard(callback: CallbackQuery) -> None:
-    """Safely remove inline keyboard from callback message."""
-
     if callback.message is None:
         return
 
@@ -57,8 +49,6 @@ async def safe_delete_messages_by_ids(
     message: Message,
     message_ids: list[int],
 ) -> None:
-    """Safely delete several messages by ids in the same chat."""
-
     for message_id in message_ids:
         try:
             await message.bot.delete_message(

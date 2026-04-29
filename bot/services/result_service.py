@@ -5,8 +5,6 @@ from bot.services.quiz_service import quiz_service
 
 
 async def get_last_result_animal(user_id: int) -> dict[str, Any] | None:
-    """Get user's latest result animal from PostgreSQL."""
-
     result = await get_last_quiz_result(user_id)
 
     if result is None:
@@ -29,6 +27,4 @@ async def get_last_result_animal(user_id: int) -> dict[str, Any] | None:
 
 
 async def has_last_result(user_id: int) -> bool:
-    """Check whether user has at least one saved quiz result."""
-
     return await get_last_quiz_result(user_id) is not None

@@ -7,8 +7,6 @@ def get_share_result_keyboard(
     whatsapp_share_url: str,
     max_share_url: str,
 ) -> InlineKeyboardMarkup:
-    """Create keyboard for sharing quiz result."""
-
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -46,8 +44,6 @@ def get_share_result_keyboard(
 
 
 def get_contact_method_keyboard(return_to_result: bool = True) -> InlineKeyboardMarkup:
-    """Create keyboard for choosing contact delivery method."""
-
     back_text = (
         "⬅️ Вернуться к результату"
         if return_to_result
@@ -80,8 +76,6 @@ def get_contact_method_keyboard(return_to_result: bool = True) -> InlineKeyboard
 
 
 def get_contact_reply_method_keyboard(return_to_result: bool) -> InlineKeyboardMarkup:
-    """Create keyboard for choosing whether staff should reply."""
-
     back_callback = "contact_staff:result" if return_to_result else "contact_staff:main"
 
     return InlineKeyboardMarkup(
@@ -115,8 +109,6 @@ def get_contact_reply_method_keyboard(return_to_result: bool) -> InlineKeyboardM
 
 
 def get_contact_reply_contact_keyboard() -> InlineKeyboardMarkup:
-    """Create keyboard for contact reply contact input."""
-
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -136,8 +128,6 @@ def get_contact_reply_contact_keyboard() -> InlineKeyboardMarkup:
 
 
 def get_contact_cancel_keyboard(return_to_result: bool = True) -> InlineKeyboardMarkup:
-    """Create cancel keyboard for contact message input."""
-
     button_text = (
         "⬅️ Вернуться к результату"
         if return_to_result
@@ -157,17 +147,10 @@ def get_contact_cancel_keyboard(return_to_result: bool = True) -> InlineKeyboard
 
 
 def get_cancel_keyboard() -> InlineKeyboardMarkup:
-    """Create default cancel action keyboard.
-
-    Kept for compatibility with older handlers.
-    """
-
     return get_contact_cancel_keyboard(return_to_result=True)
 
 
 def get_feedback_rating_keyboard() -> InlineKeyboardMarkup:
-    """Create rating keyboard for quiz feedback."""
-
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -188,8 +171,6 @@ def get_feedback_rating_keyboard() -> InlineKeyboardMarkup:
 
 
 def get_feedback_comment_keyboard() -> InlineKeyboardMarkup:
-    """Create keyboard for optional feedback comment."""
-
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -215,8 +196,6 @@ def get_feedback_comment_keyboard() -> InlineKeyboardMarkup:
 
 
 def get_feedback_reply_method_keyboard() -> InlineKeyboardMarkup:
-    """Create keyboard for choosing feedback reply method."""
-
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -248,8 +227,6 @@ def get_feedback_reply_method_keyboard() -> InlineKeyboardMarkup:
 
 
 def get_feedback_reply_contact_keyboard() -> InlineKeyboardMarkup:
-    """Create keyboard for feedback reply contact input."""
-
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [

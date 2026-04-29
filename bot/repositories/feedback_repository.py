@@ -11,8 +11,6 @@ async def save_feedback(
     telegram_sent: bool,
     email_sent: bool,
 ) -> int:
-    """Save feedback to PostgreSQL and return created row id."""
-
     pool = get_pool()
 
     row = await pool.fetchrow(

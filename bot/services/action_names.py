@@ -19,8 +19,6 @@ def get_cancelled_action_name(
     current_state: str | None,
     quiz_active: bool,
 ) -> str | None:
-    """Return human-readable name of the action being cancelled."""
-
     if quiz_active:
         return "прохождение викторины"
 
@@ -34,8 +32,6 @@ def get_cancelled_action_name(
 
 
 def build_cancel_text(action_name: str | None) -> str:
-    """Build user-facing cancel message."""
-
     if action_name is None:
         return "Активного действия для отмены не было."
 

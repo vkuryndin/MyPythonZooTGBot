@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class EmailConfigurationError(RuntimeError):
-    """Raised when email settings are not configured."""
+    pass
 
 
 def _validate_email_settings() -> None:

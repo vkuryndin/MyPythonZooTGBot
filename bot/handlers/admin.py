@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Any
 
@@ -12,7 +13,6 @@ from bot.repositories.admin_repository import (
     get_latest_feedback,
 )
 
-import logging
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -35,11 +35,13 @@ def is_admin(message: Message) -> bool:
 
     return message.from_user.id == settings.admin_chat_id
 
+
 def get_user_id(message: Message) -> int | None:
     if message.from_user is None:
         return None
 
     return message.from_user.id
+
 
 async def reject_non_admin(message: Message, command_name: str) -> None:
     logger.warning(
@@ -49,6 +51,7 @@ async def reject_non_admin(message: Message, command_name: str) -> None:
     )
 
     await message.answer("Эта команда доступна только администратору.")
+
 
 def format_datetime(value: Any) -> str:
     if value is None:
@@ -88,7 +91,10 @@ async def admin_handler(message: Message) -> None:
         await reject_non_admin(message, "/admin")
         return
 
-    logger.info("Admin command executed command=/admin user_id=%s", get_user_id(message))
+    logger.info(
+        "Admin command executed command=/admin user_id=%s",
+        get_user_id(message),
+    )
 
     await message.answer(ADMIN_HELP_TEXT)
 
@@ -158,8 +164,13 @@ async def admin_contacts_handler(message: Message) -> None:
 @router.message(Command("admin_feedback"))
 async def admin_feedback_handler(message: Message) -> None:
     if not is_admin(message):
-        await reject_non_admin(message)
+        await reject_non_admin(message, "/admin_feedback")
         return
+
+    logger.info(
+        "Admin command executed command=/admin_feedback user_id=%s",
+        get_user_id(message),
+    )
 
     feedback_items = await get_latest_feedback(limit=5)
 

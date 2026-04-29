@@ -10,8 +10,6 @@ async def save_contact_request(
     message_text: str,
     delivery_status: str,
 ) -> int:
-    """Save contact request to PostgreSQL and return created row id."""
-
     pool = get_pool()
 
     row = await pool.fetchrow(

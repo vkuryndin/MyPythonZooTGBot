@@ -7,8 +7,6 @@ from bot.repositories.database import get_pool
 
 
 def _decode_json_field(value: Any, default: Any) -> Any:
-    """Decode JSON/JSONB field returned by asyncpg."""
-
     if value is None:
         return default
 
@@ -30,8 +28,6 @@ async def save_quiz_result(
     scores: dict[str, int],
     image_tags: list[str] | None = None,
 ) -> None:
-    """Save quiz result to PostgreSQL."""
-
     pool = get_pool()
 
     await pool.execute(
@@ -58,8 +54,6 @@ async def save_quiz_result(
 
 
 async def get_last_quiz_result(user_id: int) -> dict[str, Any] | None:
-    """Get user's latest quiz result from PostgreSQL."""
-
     pool = get_pool()
 
     row = await pool.fetchrow(

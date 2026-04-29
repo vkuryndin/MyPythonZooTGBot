@@ -13,6 +13,7 @@ from bot.handlers.result_view import send_animal_result, show_last_result
 from bot.keyboards.quiz_keyboards import get_question_keyboard
 from bot.repositories.quiz_result_repository import save_quiz_result
 from bot.repositories.quiz_session_repository import (
+    add_image_tags,
     add_quiz_message_id,
     add_scores,
     create_quiz_session,
@@ -171,6 +172,12 @@ async def quiz_answer_handler(callback: CallbackQuery) -> None:
     )
     scores = await add_scores(user_id, option_scores)
 
+    option_image_tags = quiz_service.get_option_image_tags(
+        original_question_index,
+        original_option_index,
+    )
+    await add_image_tags(user_id, option_image_tags)
+
     if is_last_question_position(session, question_position):
         await send_result(callback, user_id, scores)
     else:
@@ -286,12 +293,16 @@ async def send_result(
 ) -> None:
     """Send quiz result to user."""
 
+    session = await get_quiz_session(user_id)
+    image_tags = session.get("image_tags", []) if session else []
+
     animal = quiz_service.get_result_animal(scores)
 
     await save_quiz_result(
         user=callback.from_user,
         animal=animal,
         scores=scores,
+        image_tags=image_tags,
     )
 
     quiz_message_ids = await delete_quiz_session(user_id)

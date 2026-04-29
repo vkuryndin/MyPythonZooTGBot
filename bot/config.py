@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     staff_email: str = ""
 
+    huggingface_api_token: str = ""
+    hf_image_model: str = "black-forest-labs/FLUX.1-schnell"
+    hf_image_cache_dir: str = "generated_images"
+    hf_provider: str = "hf-inference"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

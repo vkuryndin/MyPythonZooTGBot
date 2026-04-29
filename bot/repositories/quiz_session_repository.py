@@ -25,6 +25,7 @@ async def create_quiz_session(
         "question_order": question_order,
         "option_orders": option_orders,
         "scores": {},
+        "image_tags": [],
         "quiz_message_ids": [],
     }
 
@@ -110,6 +111,25 @@ async def add_scores(
     await save_quiz_session(user_id, session)
 
     return scores
+
+
+async def add_image_tags(user_id: int, image_tags: list[str]) -> list[str]:
+    """Add selected option image tags to active quiz session."""
+
+    session = await get_quiz_session(user_id)
+
+    if session is None:
+        return []
+
+    stored_tags = session.setdefault("image_tags", [])
+
+    for tag in image_tags:
+        if tag not in stored_tags:
+            stored_tags.append(tag)
+
+    await save_quiz_session(user_id, session)
+
+    return stored_tags
 
 
 async def set_question_position(user_id: int, question_position: int) -> None:

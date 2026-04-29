@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS quiz_results (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE quiz_results
+ADD COLUMN image_tags JSONB NOT NULL DEFAULT '[]'::jsonb;
+
 CREATE INDEX IF NOT EXISTS idx_quiz_results_telegram_user_id
     ON quiz_results (telegram_user_id);
 

@@ -7,15 +7,16 @@ from bot.repositories.database import get_pool
 
 
 async def save_quiz_result(
-    user: User,
-    animal: dict[str, Any],
-    scores: dict[str, int],
-) -> int:
-    """Save quiz result to PostgreSQL and return created row id."""
+    user,
+    animal: dict,
+    scores: dict,
+    image_tags: list[str] | None = None,
+) -> None:
+    """Save quiz result to PostgreSQL."""
 
     pool = get_pool()
 
-    row = await pool.fetchrow(
+    await pool.execute(
         """
         INSERT INTO quiz_results (
             telegram_user_id,
@@ -23,10 +24,10 @@ async def save_quiz_result(
             full_name,
             animal_id,
             animal_name,
-            scores
+            scores,
+            image_tags
         )
-        VALUES ($1, $2, $3, $4, $5, $6::jsonb)
-        RETURNING id
+        VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb)
         """,
         user.id,
         user.username,
@@ -34,9 +35,8 @@ async def save_quiz_result(
         animal["id"],
         animal["name"],
         json.dumps(scores, ensure_ascii=False),
+        json.dumps(image_tags or [], ensure_ascii=False),
     )
-
-    return int(row["id"])
 
 async def get_last_quiz_result(user_id: int) -> dict | None:
     """Get user's latest quiz result from PostgreSQL."""

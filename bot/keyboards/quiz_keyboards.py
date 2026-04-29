@@ -51,7 +51,7 @@ def get_result_keyboard() -> InlineKeyboardMarkup:
                     callback_data="share_result",
                 )
             ],
-            [
+         [
                 InlineKeyboardButton(
                     text="💬 Связаться с сотрудником",
                     callback_data="contact_staff",
@@ -69,5 +69,12 @@ def get_result_keyboard() -> InlineKeyboardMarkup:
                     callback_data="start_quiz",
                 )
             ],
+            [
+                InlineKeyboardButton(
+                    text="🎨 Сгенерировать ИИ-картинку",
+                    callback_data="generate_result_image",
+                )
+            ],
+
         ]
     )

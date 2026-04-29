@@ -56,5 +56,11 @@ class QuizService:
         with path.open(encoding="utf-8") as file:
             return json.load(file)
 
+    def get_option_image_tags(self, question_index: int, option_index: int) -> list[str]:
+        """Return image tags for selected option."""
+
+        question = self.get_question(question_index)
+        option = question["options"][option_index]
+        return option.get("image_tags", [])
 
 quiz_service = QuizService()

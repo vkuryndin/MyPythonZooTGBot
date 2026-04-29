@@ -5,11 +5,11 @@ from urllib.parse import quote
 from aiogram import Bot, F, Router
 from aiogram.exceptions import TelegramAPIError
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, User
+from aiogram.types import CallbackQuery, FSInputFile, Message, User
 
 from bot.config import settings
 from bot.handlers.menu import show_main_menu
-from bot.handlers.result_view import show_last_result
+from bot.handlers.result_view import send_result_actions_menu, show_last_result
 from bot.keyboards.action_keyboards import (
     get_contact_cancel_keyboard,
     get_contact_method_keyboard,
@@ -32,6 +32,11 @@ from bot.services.message_utils import (
 )
 from bot.services.result_service import get_last_result_animal
 from bot.states.user_states import ContactStaffState, FeedbackState
+
+
+
+from bot.repositories.quiz_result_repository import get_last_quiz_result
+from bot.services.image_generation_service import generate_result_image
 
 
 router = Router()
@@ -1018,3 +1023,60 @@ async def finish_feedback_flow(
         message=message,
         user_id=user.id,
     )
+@router.callback_query(lambda callback: callback.data == "generate_result_image")
+async def generate_result_image_handler(callback: CallbackQuery) -> None:
+    """Generate separate AI image for user's latest quiz result."""
+
+    message = get_callback_message(callback)
+
+    if message is None:
+        await callback.answer("Сообщение уже недоступно 🙂")
+        return
+
+    animal = await get_last_result_animal(callback.from_user.id)
+
+    if animal is None:
+        await callback.answer("Сначала пройди викторину 🙂")
+        return
+
+    result = await get_last_quiz_result(callback.from_user.id)
+    image_tags = result.get("image_tags", []) if result else []
+
+    progress_message = await message.answer(
+        "Генерирую отдельную картинку по твоему результату 🐾\n"
+        "Это может занять немного времени."
+    )
+
+    generated_image_path = await generate_result_image(
+        animal=animal,
+        image_tags=image_tags,
+    )
+
+    await safe_delete_message(progress_message)
+
+    if generated_image_path is None:
+        await message.answer(
+            "Сейчас не удалось сгенерировать картинку. Попробуй позже 🐾"
+        )
+
+        await send_result_actions_menu(
+            message=message,
+            animal=animal,
+        )
+
+        await callback.answer()
+        return
+
+    await message.answer_photo(
+        photo=FSInputFile(generated_image_path),
+        caption=(
+            f"AI-картинка по твоему результату: {animal['name']} 🐾\n\n"
+        ),
+    )
+
+    await send_result_actions_menu(
+        message=message,
+        animal=animal,
+    )
+
+    await callback.answer()

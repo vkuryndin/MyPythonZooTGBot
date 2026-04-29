@@ -91,3 +91,11 @@ async def back_to_result_handler(callback: CallbackQuery) -> None:
         user_id=callback.from_user.id,
     )
     await callback.answer()
+
+async def send_result_actions_menu(message: Message, animal: dict) -> None:
+    """Send result actions menu without resending animal photo."""
+
+    await message.answer(
+        f"Что хочешь сделать дальше с результатом «{animal['name']}»? 🐾",
+        reply_markup=get_result_keyboard(),
+    )

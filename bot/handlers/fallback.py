@@ -11,7 +11,6 @@ router = Router()
 
 @router.message(F.text)
 async def unexpected_text_handler(message: Message) -> None:
-    """Delete unexpected text messages and show a short hint."""
 
     await safe_delete_message(message)
 
@@ -30,7 +29,6 @@ async def unexpected_text_handler(message: Message) -> None:
 
 @router.message()
 async def unexpected_message_handler(message: Message) -> None:
-    """Delete unexpected non-text messages and show a short hint."""
 
     await safe_delete_message(message)
 

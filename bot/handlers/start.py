@@ -10,6 +10,4 @@ router = Router()
 
 @router.message(CommandStart())
 async def start_handler(message: Message) -> None:
-    """Handle the /start command."""
-
     await show_start_screen(message)

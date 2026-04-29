@@ -107,7 +107,7 @@ async def admin_stats_handler(message: Message) -> None:
     stats = await get_admin_stats()
 
     text = (
-        "📊 Статистика PythonZoo\n\n"
+        "📊 Статистика SkillfactoryMoscowZooBot\n\n"
         f"Результатов викторины: {stats['quiz_results_count']}\n"
         f"Контактных заявок: {stats['contact_requests_count']}\n"
         f"Отзывов: {stats['feedback_count']}\n\n"

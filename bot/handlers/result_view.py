@@ -17,15 +17,12 @@ def build_result_text(
     animal: dict[str, Any],
     prefix_text: str | None = None,
 ) -> str:
-    result_text = (
+    text = (
         f"🎉 Твоё тотемное животное — {animal['name']}!\n\n"
         f"{animal['description']}"
     )
 
-    if prefix_text:
-        return f"{prefix_text}\n\n{result_text}"
-
-    return result_text
+    return f"{prefix_text}\n\n{text}" if prefix_text else text
 
 
 async def send_animal_result(

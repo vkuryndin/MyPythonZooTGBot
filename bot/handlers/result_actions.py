@@ -1124,7 +1124,6 @@ async def generate_result_image_handler(callback: CallbackQuery) -> None:
         photo=FSInputFile(generated_image_path),
         caption=(
             f"AI-картинка по твоему результату: {animal['name']} 🐾\n\n"
-            "Обычная карточка результата остаётся с фотографией животного."
         ),
     )
 

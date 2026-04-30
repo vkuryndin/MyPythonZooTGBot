@@ -36,3 +36,4 @@ __pycache__/
 *.pyc
 .idea/
 generated_images/
+assets/images_optimized

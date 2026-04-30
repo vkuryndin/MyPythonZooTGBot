@@ -13,8 +13,7 @@
         "image_tags": [
           "quiet",
           "observant",
-          "reserved",
-          "soft winter light"
+          "cozy"
         ]
       },
       {
@@ -25,10 +24,9 @@
           "otter": 1
         },
         "image_tags": [
-          "group warmth",
-          "alert",
           "friendly",
-          "sunny mood"
+          "teamwork",
+          "sunny"
         ]
       },
       {
@@ -40,9 +38,8 @@
         },
         "image_tags": [
           "playful",
-          "water movement",
-          "joyful",
-          "fresh air"
+          "water",
+          "joyful"
         ]
       },
       {
@@ -54,9 +51,8 @@
         },
         "image_tags": [
           "cozy",
-          "relaxed",
-          "slow peaceful mood",
-          "gentle light"
+          "calm",
+          "slow"
         ]
       }
     ]
@@ -74,9 +70,8 @@
         },
         "image_tags": [
           "focused",
-          "precise",
           "confident",
-          "tense calm"
+          "calm"
         ]
       },
       {
@@ -87,10 +82,9 @@
           "manul": 1
         },
         "image_tags": [
-          "wise",
           "calm",
           "reliable",
-          "grounded mood"
+          "steady"
         ]
       },
       {
@@ -102,9 +96,8 @@
         },
         "image_tags": [
           "teamwork",
-          "active",
           "supportive",
-          "clear coordination"
+          "active"
         ]
       },
       {
@@ -116,9 +109,8 @@
         },
         "image_tags": [
           "curious",
-          "experimental",
-          "energetic",
-          "light playful mood"
+          "playful",
+          "energetic"
         ]
       }
     ]
@@ -135,10 +127,9 @@
           "tiger": 1
         },
         "image_tags": [
-          "hidden corner",
           "quiet",
-          "soft textures",
-          "private mood"
+          "observant",
+          "cozy"
         ]
       },
       {
@@ -149,10 +140,9 @@
           "sloth": 1
         },
         "image_tags": [
-          "open space",
-          "majestic",
           "calm",
-          "stable atmosphere"
+          "open space",
+          "steady"
         ]
       },
       {
@@ -163,10 +153,9 @@
           "tiger": 1
         },
         "image_tags": [
-          "charismatic",
+          "bold",
           "dynamic",
-          "loud energy",
-          "bright daylight"
+          "open space"
         ]
       },
       {
@@ -179,8 +168,7 @@
         "image_tags": [
           "bright",
           "elegant",
-          "festive",
-          "sunny reflections"
+          "festive"
         ]
       }
     ]
@@ -197,10 +185,9 @@
           "sloth": 1
         },
         "image_tags": [
-          "watchful",
-          "reserved",
-          "calm",
-          "quiet social mood"
+          "quiet",
+          "observant",
+          "reserved"
         ]
       },
       {
@@ -211,10 +198,9 @@
           "otter": 1
         },
         "image_tags": [
-          "stylish",
           "bright",
-          "graceful",
-          "uplifting atmosphere"
+          "stylish",
+          "graceful"
         ]
       },
       {
@@ -226,9 +212,8 @@
         },
         "image_tags": [
           "reliable",
-          "warm",
-          "steady",
-          "comforting presence"
+          "calm",
+          "supportive"
         ]
       },
       {
@@ -239,10 +224,9 @@
           "flamingo": 1
         },
         "image_tags": [
+          "playful",
           "friendly",
-          "fun",
-          "easygoing",
-          "light mood"
+          "easygoing"
         ]
       }
     ]
@@ -259,10 +243,9 @@
           "manul": 1
         },
         "image_tags": [
-          "silent power",
           "strong",
-          "graceful",
-          "focused gaze"
+          "focused",
+          "calm"
         ]
       },
       {
@@ -273,10 +256,9 @@
           "sloth": 1
         },
         "image_tags": [
-          "kind",
           "reliable",
           "calm",
-          "steady warmth"
+          "warm"
         ]
       },
       {
@@ -287,10 +269,9 @@
           "otter": 1
         },
         "image_tags": [
-          "vivid",
+          "bright",
           "elegant",
-          "radiant",
-          "sunny atmosphere"
+          "sunny"
         ]
       },
       {
@@ -301,10 +282,9 @@
           "flamingo": 1
         },
         "image_tags": [
-          "energetic",
-          "expressive",
           "bold",
-          "dynamic splash"
+          "dynamic",
+          "energetic"
         ]
       }
     ]
@@ -323,8 +303,7 @@
         "image_tags": [
           "independent",
           "focused",
-          "confident",
-          "clear boundaries"
+          "calm"
         ]
       },
       {
@@ -337,8 +316,7 @@
         "image_tags": [
           "bold",
           "charismatic",
-          "loud energy",
-          "showy confidence"
+          "dynamic"
         ]
       },
       {
@@ -349,10 +327,9 @@
           "otter": 1
         },
         "image_tags": [
-          "beautiful",
+          "bright",
           "stylish",
-          "expressive",
-          "bright mood"
+          "expressive"
         ]
       },
       {
@@ -363,10 +340,9 @@
           "manul": 1
         },
         "image_tags": [
-          "comfortable",
+          "cozy",
           "slow",
-          "peaceful",
-          "soft green mood"
+          "calm"
         ]
       }
     ]
@@ -383,10 +359,9 @@
           "sea_lion": 1
         },
         "image_tags": [
-          "decisive",
           "focused",
-          "dynamic",
-          "sharp attention"
+          "decisive",
+          "dynamic"
         ]
       },
       {
@@ -397,10 +372,9 @@
           "elephant": 1
         },
         "image_tags": [
-          "team spirit",
-          "alert",
-          "friendly",
-          "supportive energy"
+          "teamwork",
+          "supportive",
+          "friendly"
         ]
       },
       {
@@ -412,9 +386,8 @@
         },
         "image_tags": [
           "calm",
-          "gentle",
           "patient",
-          "soft atmosphere"
+          "slow"
         ]
       },
       {
@@ -426,9 +399,8 @@
         },
         "image_tags": [
           "curious",
-          "adventurous",
-          "fresh",
-          "playful movement"
+          "playful",
+          "dynamic"
         ]
       }
     ]
@@ -445,10 +417,9 @@
           "tiger": 1
         },
         "image_tags": [
-          "private",
           "quiet",
           "calm",
-          "minimalist mood"
+          "cozy"
         ]
       },
       {
@@ -460,9 +431,8 @@
         },
         "image_tags": [
           "active",
-          "community",
-          "alert",
-          "busy sunny day"
+          "teamwork",
+          "sunny"
         ]
       },
       {
@@ -473,10 +443,9 @@
           "manul": 1
         },
         "image_tags": [
-          "steady",
-          "wise",
           "calm",
-          "structured rhythm"
+          "reliable",
+          "steady"
         ]
       },
       {
@@ -489,8 +458,7 @@
         "image_tags": [
           "festive",
           "bright",
-          "elegant",
-          "cheerful glow"
+          "elegant"
         ]
       }
     ]
@@ -507,10 +475,9 @@
           "sloth": 1
         },
         "image_tags": [
-          "solitude",
           "quiet",
-          "soft light",
-          "protected space"
+          "calm",
+          "cozy"
         ]
       },
       {
@@ -521,10 +488,9 @@
           "otter": 1
         },
         "image_tags": [
-          "warm community",
-          "group comfort",
-          "sunny",
-          "togetherness"
+          "friendly",
+          "teamwork",
+          "warm"
         ]
       },
       {
@@ -535,10 +501,9 @@
           "tiger": 1
         },
         "image_tags": [
+          "bold",
           "free",
-          "energetic",
-          "open mood",
-          "bold presence"
+          "dynamic"
         ]
       },
       {
@@ -550,9 +515,8 @@
         },
         "image_tags": [
           "cozy",
-          "relax",
-          "gentle",
-          "peaceful shade"
+          "calm",
+          "slow"
         ]
       }
     ]
@@ -570,9 +534,8 @@
         },
         "image_tags": [
           "confident",
-          "decisive",
-          "strong gaze",
-          "controlled power"
+          "focused",
+          "bold"
         ]
       },
       {
@@ -583,10 +546,9 @@
           "manul": 1
         },
         "image_tags": [
-          "thoughtful",
-          "calm power",
-          "wise",
-          "grounded decision"
+          "calm",
+          "reliable",
+          "thoughtful"
         ]
       },
       {
@@ -599,8 +561,7 @@
         "image_tags": [
           "slow",
           "careful",
-          "gentle",
-          "balanced mood"
+          "calm"
         ]
       },
       {
@@ -611,10 +572,9 @@
           "tiger": 1
         },
         "image_tags": [
-          "leader energy",
-          "expressive",
+          "leader",
           "bold",
-          "forward motion"
+          "dynamic"
         ]
       }
     ]
@@ -633,8 +593,7 @@
         "image_tags": [
           "observant",
           "quiet",
-          "wise eyes",
-          "measured presence"
+          "calm"
         ]
       },
       {
@@ -645,10 +604,9 @@
           "elephant": 1
         },
         "image_tags": [
-          "supportive",
           "teamwork",
-          "active",
-          "organised mood"
+          "supportive",
+          "active"
         ]
       },
       {
@@ -659,10 +617,9 @@
           "flamingo": 1
         },
         "image_tags": [
-          "fun",
           "playful",
           "joyful",
-          "movement"
+          "dynamic"
         ]
       },
       {
@@ -673,10 +630,9 @@
           "otter": 1
         },
         "image_tags": [
-          "elegant",
-          "fashionable",
+          "stylish",
           "bright",
-          "striking mood"
+          "elegant"
         ]
       }
     ]
@@ -693,10 +649,9 @@
           "flamingo": 1
         },
         "image_tags": [
-          "funny serious mood",
-          "fluffy",
-          "winter atmosphere",
-          "dignified look"
+          "quiet",
+          "winter light",
+          "cozy"
         ]
       },
       {
@@ -707,10 +662,9 @@
           "otter": 1
         },
         "image_tags": [
+          "calm",
           "warm",
-          "kind",
-          "majestic",
-          "satisfied calm"
+          "reliable"
         ]
       },
       {
@@ -721,10 +675,9 @@
           "flamingo": 1
         },
         "image_tags": [
-          "splashing water",
-          "joyful",
           "playful",
-          "fresh energy"
+          "water",
+          "joyful"
         ]
       },
       {
@@ -735,10 +688,9 @@
           "flamingo": 1
         },
         "image_tags": [
-          "showman energy",
           "bold",
           "dynamic",
-          "bright attention"
+          "bright"
         ]
       }
     ]
@@ -756,9 +708,8 @@
         },
         "image_tags": [
           "focused",
-          "clean presentation",
-          "powerful",
-          "clear message"
+          "confident",
+          "strong"
         ]
       },
       {
@@ -769,10 +720,9 @@
           "elephant": 1
         },
         "image_tags": [
-          "cooperative",
-          "friendly",
-          "group synergy",
-          "structured flow"
+          "teamwork",
+          "supportive",
+          "reliable"
         ]
       },
       {
@@ -785,8 +735,7 @@
         "image_tags": [
           "bright",
           "elegant",
-          "memorable",
-          "striking style"
+          "expressive"
         ]
       },
       {
@@ -799,8 +748,7 @@
         "image_tags": [
           "charismatic",
           "bold",
-          "showy",
-          "big energy"
+          "dynamic"
         ]
       }
     ]
@@ -818,9 +766,8 @@
         },
         "image_tags": [
           "independent",
-          "quiet mood",
-          "clear boundaries",
-          "cold calm"
+          "quiet",
+          "calm"
         ]
       },
       {
@@ -831,10 +778,9 @@
           "flamingo": 1
         },
         "image_tags": [
-          "movement",
-          "restless energy",
-          "fun seeking",
-          "fresh mood"
+          "dynamic",
+          "playful",
+          "energetic"
         ]
       },
       {
@@ -845,10 +791,9 @@
           "manul": 1
         },
         "image_tags": [
-          "peaceful",
           "slow",
-          "soft green",
-          "need for calm"
+          "calm",
+          "cozy"
         ]
       },
       {
@@ -859,10 +804,9 @@
           "tiger": 1
         },
         "image_tags": [
-          "stable",
-          "calm strength",
-          "structured",
-          "reliable rhythm"
+          "reliable",
+          "calm",
+          "steady"
         ]
       }
     ]
@@ -879,10 +823,9 @@
           "sea_lion": 1
         },
         "image_tags": [
-          "forest mood",
-          "freedom",
-          "power",
-          "strong silence"
+          "forest",
+          "strong",
+          "free"
         ]
       },
       {
@@ -893,10 +836,9 @@
           "elephant": 1
         },
         "image_tags": [
-          "family warmth",
-          "team spirit",
-          "warm sun",
-          "shared comfort"
+          "teamwork",
+          "warm",
+          "friendly"
         ]
       },
       {
@@ -907,10 +849,9 @@
           "flamingo": 1
         },
         "image_tags": [
-          "river mood",
-          "splash",
           "playful",
-          "active joy"
+          "water",
+          "dynamic"
         ]
       },
       {
@@ -921,10 +862,9 @@
           "otter": 1
         },
         "image_tags": [
-          "expressive",
+          "bold",
           "playful",
-          "bold mood",
-          "open energy"
+          "dynamic"
         ]
       }
     ]
@@ -942,9 +882,8 @@
         },
         "image_tags": [
           "relaxed",
-          "gentle",
-          "tree shade",
-          "energy saving mood"
+          "slow",
+          "cozy"
         ]
       },
       {
@@ -955,10 +894,9 @@
           "flamingo": 1
         },
         "image_tags": [
-          "jumping energy",
-          "water splash",
-          "high energy",
-          "showy motion"
+          "bold",
+          "dynamic",
+          "water"
         ]
       },
       {
@@ -969,10 +907,9 @@
           "otter": 1
         },
         "image_tags": [
-          "grace",
-          "beauty",
-          "pink glow",
-          "stylish atmosphere"
+          "bright",
+          "elegant",
+          "stylish"
         ]
       },
       {
@@ -984,9 +921,8 @@
         },
         "image_tags": [
           "curious",
-          "joyful",
-          "water play",
-          "fresh lively mood"
+          "playful",
+          "water"
         ]
       }
     ]

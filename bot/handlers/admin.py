@@ -18,7 +18,7 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 ADMIN_HELP_TEXT = (
-    "🔐 Админский режим PythonZoo\n\n"
+    "🔐 Админский режим MoscowZoo Spirit Animal\n\n"
     "Доступные команды:\n"
     "/admin_stats — статистика проекта\n"
     "/admin_contacts — последние обращения сотруднику\n"

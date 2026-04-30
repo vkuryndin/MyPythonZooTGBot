@@ -340,7 +340,7 @@ async def contact_message_handler(message: Message, state: FSMContext) -> None:
         )
     else:
         prefix_text, delivery_status = await send_contact_to_email(
-            subject=f"PythonZoo: сообщение от пользователя {full_name}",
+            subject=f"MoscowZoo Spirit Animal: сообщение от пользователя {full_name}",
             body=staff_message,
         )
 

@@ -64,7 +64,7 @@ async def set_bot_commands(bot: Bot) -> None:
 
 
 async def main() -> None:
-    logger.info("Starting PythonZoo bot")
+    logger.info("Starting MoscowZoo bot")
 
     await init_db_pool()
     redis_client = await init_redis_client()
@@ -95,13 +95,13 @@ async def main() -> None:
         logger.info("Starting polling")
         await dp.start_polling(bot)
     finally:
-        logger.info("Stopping PythonZoo bot")
+        logger.info("Stopping MoscowZoo bot")
 
         await close_db_pool()
         await close_redis_client()
         await bot.session.close()
 
-        logger.info("PythonZoo bot stopped")
+        logger.info("MoscowZoo bot stopped")
 
 
 if __name__ == "__main__":

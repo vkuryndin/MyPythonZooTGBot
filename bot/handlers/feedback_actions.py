@@ -370,7 +370,7 @@ def build_feedback_staff_message(
         reply_text = "Ответ пользователю не требуется."
 
     text = (
-        "⭐ Новый отзыв о викторине PythonZoo\n\n"
+        "⭐ Новый отзыв о викторине MoscowZoo Spirit Animal\n\n"
         f"Пользователь: {limit_text(user.full_name, 120)}\n"
         f"Username: {username}\n"
         f"Telegram ID: {user.id}\n"
@@ -498,7 +498,7 @@ async def finish_feedback_flow(
 
     delivery_text, telegram_sent, email_sent = await send_feedback_to_staff(
         bot=message.bot,
-        subject="PythonZoo: новый отзыв о викторине",
+        subject="MoscowZooBot: новый отзыв о викторине",
         body=feedback_message,
     )
 

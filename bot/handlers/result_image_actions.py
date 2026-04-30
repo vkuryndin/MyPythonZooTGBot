@@ -1,4 +1,5 @@
 from aiogram import Router
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery, FSInputFile
 
 from bot.handlers.result_view import send_result_actions_menu
@@ -12,7 +13,12 @@ from bot.services.user_input_service import get_callback_message
 
 router = Router()
 
-IMAGE_GENERATION_COOLDOWN_SECONDS = 120
+IMAGE_GENERATION_COOLDOWN_SECONDS = 60
+
+GENERATION_PROGRESS_TEXT = (
+    "⏳ Генерирую картинку по твоему результату...\n\n"
+    "Это может занять немного времени."
+)
 
 
 @router.callback_query(lambda callback: callback.data == "generate_result_image")
@@ -48,17 +54,26 @@ async def generate_result_image_handler(callback: CallbackQuery) -> None:
     result = await get_last_quiz_result(callback.from_user.id)
     image_tags = result.get("image_tags", []) if result else []
 
-    progress_message = await message.answer(
-        "Генерирую отдельную картинку по твоему результату 🐾\n"
-        "Это может занять немного времени."
-    )
+    try:
+        if message.photo:
+            await message.edit_caption(
+                caption=GENERATION_PROGRESS_TEXT,
+                reply_markup=None,
+            )
+        else:
+            await message.edit_text(
+                text=GENERATION_PROGRESS_TEXT,
+                reply_markup=None,
+            )
+    except TelegramBadRequest:
+        pass
 
     generated_image_path = await generate_result_image(
         animal=animal,
         image_tags=image_tags,
     )
 
-    await safe_delete_message(progress_message)
+    await safe_delete_message(message)
 
     if generated_image_path is None:
         await message.answer(
@@ -68,17 +83,17 @@ async def generate_result_image_handler(callback: CallbackQuery) -> None:
         await send_result_actions_menu(
             message=message,
             animal=animal,
+            include_view_result_button=True,
         )
         return
 
     await message.answer_photo(
         photo=FSInputFile(generated_image_path),
-        caption=(
-            f"AI-картинка по твоему результату: {animal['name']} 🐾\n\n"
-        ),
+        caption=f"AI-картинка по твоему результату: {animal['name']} 🐾",
     )
 
     await send_result_actions_menu(
         message=message,
         animal=animal,
+        include_view_result_button=True,
     )

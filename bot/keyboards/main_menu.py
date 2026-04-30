@@ -17,29 +17,15 @@ def get_main_menu_keyboard(
             ]
         )
 
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                text=(
-                    "🐾 Начать викторину"
-                    if not has_result
-                    else "🔁 Пройти викторину заново"
-                ),
-                callback_data="start_quiz",
-            )
-        ]
-    )
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text="ℹ️ Узнать про опеку",
+                    callback_data="about_adoption:main",
+                )
+            ]
+        )
 
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                text="ℹ️ Узнать про опеку",
-                callback_data="about_adoption:main",
-            )
-        ]
-    )
-
-    if has_result:
         keyboard.extend(
             [
                 [
@@ -60,6 +46,30 @@ def get_main_menu_keyboard(
                         callback_data="leave_feedback",
                     )
                 ],
+                [
+                    InlineKeyboardButton(
+                        text="🔁 Пройти викторину заново",
+                        callback_data="start_quiz",
+                    )
+                ],
+            ]
+        )
+    else:
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text="🐾 Начать викторину",
+                    callback_data="start_quiz",
+                )
+            ]
+        )
+
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text="ℹ️ Узнать про опеку",
+                    callback_data="about_adoption:main",
+                )
             ]
         )
 
@@ -74,7 +84,6 @@ def get_main_menu_keyboard(
         )
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
-
 
 def get_back_to_main_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(

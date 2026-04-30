@@ -82,8 +82,14 @@ async def back_to_result_handler(callback: CallbackQuery) -> None:
     await callback.answer()
 
 
-async def send_result_actions_menu(message: Message, animal: dict[str, Any]) -> None:
+async def send_result_actions_menu(
+    message: Message,
+    animal: dict[str, Any],
+    include_view_result_button: bool = False,
+) -> None:
     await message.answer(
-        f"Что хочешь сделать дальше с результатом «{animal['name']}»? 🐾",
-        reply_markup=get_result_keyboard(),
+        f"Что хочешь сделать дальше с результатом {animal['name']}? 🐾",
+        reply_markup=get_result_keyboard(
+            include_view_result_button=include_view_result_button
+        ),
     )

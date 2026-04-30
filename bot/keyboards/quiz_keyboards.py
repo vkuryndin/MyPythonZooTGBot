@@ -32,9 +32,23 @@ def get_question_keyboard(question: dict, question_index: int) -> InlineKeyboard
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-def get_result_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
+def get_result_keyboard(
+    include_view_result_button: bool = False,
+) -> InlineKeyboardMarkup:
+    buttons = []
+
+    if include_view_result_button:
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text="🎉 Посмотреть мой результат",
+                    callback_data="back_to_result",
+                )
+            ]
+        )
+
+    buttons.extend(
+        [
             [
                 InlineKeyboardButton(
                     text="🐾 Узнать про опеку",
@@ -61,7 +75,7 @@ def get_result_keyboard() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="🔁 Пройти ещё раз",
+                    text="🔁 Пройти викторину заново",
                     callback_data="start_quiz",
                 )
             ],
@@ -73,3 +87,5 @@ def get_result_keyboard() -> InlineKeyboardMarkup:
             ],
         ]
     )
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)

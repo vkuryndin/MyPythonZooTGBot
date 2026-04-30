@@ -4,24 +4,60 @@
     "text": "После тяжёлой недели тебе хочется восстановиться. Какой вариант ближе?",
     "options": [
       {
-        "text": "Спрятаться в тишине и смотреть на мир с достоинством манула Тимофея",
-        "scores": { "manul": 3 },
-        "image_tags": ["pallas cat", "quiet", "observant", "soft winter light"]
+        "text": "Спрятаться в тишине и спокойно наблюдать за миром",
+        "scores": {
+          "manul": 5,
+          "sloth": 2,
+          "elephant": 1
+        },
+        "image_tags": [
+          "quiet",
+          "observant",
+          "reserved",
+          "soft winter light"
+        ]
       },
       {
-        "text": "Собрать своих людей и быть на посту, как сурикаты",
-        "scores": { "meerkat": 3 },
-        "image_tags": ["meerkat", "group", "alert", "sunny mood"]
+        "text": "Собрать своих людей рядом и почувствовать командный дух",
+        "scores": {
+          "meerkat": 5,
+          "elephant": 2,
+          "otter": 1
+        },
+        "image_tags": [
+          "group warmth",
+          "alert",
+          "friendly",
+          "sunny mood"
+        ]
       },
       {
         "text": "Переключиться на движение, игру или прогулку у воды",
-        "scores": { "otter": 3 },
-        "image_tags": ["otter", "water", "playful", "joyful"]
+        "scores": {
+          "otter": 5,
+          "sea_lion": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "playful",
+          "water movement",
+          "joyful",
+          "fresh air"
+        ]
       },
       {
-        "text": "Замедлиться, лечь поудобнее и никуда не спешить",
-        "scores": { "sloth": 3 },
-        "image_tags": ["sloth", "relaxed", "cozy", "slow peaceful mood"]
+        "text": "Замедлиться, устроиться поудобнее и никуда не спешить",
+        "scores": {
+          "sloth": 5,
+          "manul": 2,
+          "elephant": 1
+        },
+        "image_tags": [
+          "cozy",
+          "relaxed",
+          "slow peaceful mood",
+          "gentle light"
+        ]
       }
     ]
   },
@@ -30,24 +66,60 @@
     "text": "Появилась сложная задача. Как ты обычно действуешь?",
     "options": [
       {
-        "text": "Сначала внимательно оцениваю ситуацию, потом делаю осознанный точный шаг",
-        "scores": { "tiger": 3 },
-        "image_tags": ["tiger", "focused", "confident", "precise"]
+        "text": "Сначала оцениваю ситуацию, а потом делаю точный и продуманный шаг",
+        "scores": {
+          "tiger": 5,
+          "sloth": 2,
+          "manul": 1
+        },
+        "image_tags": [
+          "focused",
+          "precise",
+          "confident",
+          "tense calm"
+        ]
       },
       {
         "text": "Разбираю всё спокойно и основательно, без лишней суеты",
-        "scores": { "elephant": 3 },
-        "image_tags": ["elephant", "wise", "calm", "strong"]
+        "scores": {
+          "elephant": 5,
+          "sloth": 2,
+          "manul": 1
+        },
+        "image_tags": [
+          "wise",
+          "calm",
+          "reliable",
+          "grounded mood"
+        ]
       },
       {
         "text": "Подключаю людей, распределяю роли и быстро собираю картину",
-        "scores": { "meerkat": 3 },
-        "image_tags": ["meerkat", "teamwork", "active", "friendly"]
+        "scores": {
+          "meerkat": 5,
+          "tiger": 2,
+          "elephant": 1
+        },
+        "image_tags": [
+          "teamwork",
+          "active",
+          "supportive",
+          "clear coordination"
+        ]
       },
       {
         "text": "Начинаю пробовать разные варианты и учусь по ходу дела",
-        "scores": { "otter": 3 },
-        "image_tags": ["otter", "curious", "active", "playful"]
+        "scores": {
+          "otter": 5,
+          "meerkat": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "curious",
+          "experimental",
+          "energetic",
+          "light playful mood"
+        ]
       }
     ]
   },
@@ -56,24 +128,60 @@
     "text": "Какое пространство тебе приятнее всего?",
     "options": [
       {
-        "text": "Уютное укрытие, откуда всё видно, но никто тебя не видит",
-        "scores": { "manul": 3 },
-        "image_tags": ["pallas cat", "hidden", "quiet corner", "soft fur"]
+        "text": "Уютное укрытие, откуда всё видно, но тебя самого почти не видно",
+        "scores": {
+          "manul": 5,
+          "sloth": 2,
+          "tiger": 1
+        },
+        "image_tags": [
+          "hidden corner",
+          "quiet",
+          "soft textures",
+          "private mood"
+        ]
       },
       {
-        "text": "Большое спокойное место, где можно держаться уверенно, как слониха Капри",
-        "scores": { "elephant": 3 },
-        "image_tags": ["elephant", "open space", "calm", "majestic"]
+        "text": "Большое спокойное место, где можно держаться уверенно и свободно",
+        "scores": {
+          "elephant": 5,
+          "tiger": 2,
+          "sloth": 1
+        },
+        "image_tags": [
+          "open space",
+          "majestic",
+          "calm",
+          "stable atmosphere"
+        ]
       },
       {
-        "text": "Открытая площадка, где можно заявить о себе, как сивуч Дино",
-        "scores": { "sea_lion": 3 },
-        "image_tags": ["sea lion", "charismatic", "splashing water", "loud energy"]
+        "text": "Открытая площадка, где можно заметно проявить себя",
+        "scores": {
+          "sea_lion": 5,
+          "flamingo": 2,
+          "tiger": 1
+        },
+        "image_tags": [
+          "charismatic",
+          "dynamic",
+          "loud energy",
+          "bright daylight"
+        ]
       },
       {
-        "text": "Красивое место, где всё выглядит ярко и немного празднично",
-        "scores": { "flamingo": 3 },
-        "image_tags": ["flamingo", "pink", "bright", "elegant"]
+        "text": "Красивое место, где всё выглядит ярко и празднично",
+        "scores": {
+          "flamingo": 5,
+          "sea_lion": 2,
+          "otter": 1
+        },
+        "image_tags": [
+          "bright",
+          "elegant",
+          "festive",
+          "sunny reflections"
+        ]
       }
     ]
   },
@@ -83,23 +191,59 @@
     "options": [
       {
         "text": "Сначала присматриваюсь и держу дистанцию",
-        "scores": { "manul": 3 },
-        "image_tags": ["pallas cat", "calm", "watchful", "reserved"]
+        "scores": {
+          "manul": 5,
+          "tiger": 2,
+          "sloth": 1
+        },
+        "image_tags": [
+          "watchful",
+          "reserved",
+          "calm",
+          "quiet social mood"
+        ]
       },
       {
-        "text": "Легко добавляю разговору цвета и настроения",
-        "scores": { "flamingo": 3 },
-        "image_tags": ["flamingo", "stylish", "bright", "graceful"]
+        "text": "Легко добавляю разговору яркие краски и настроения",
+        "scores": {
+          "flamingo": 5,
+          "sea_lion": 2,
+          "otter": 1
+        },
+        "image_tags": [
+          "stylish",
+          "bright",
+          "graceful",
+          "uplifting atmosphere"
+        ]
       },
       {
         "text": "Спокойно становлюсь человеком, рядом с которым надёжно",
-        "scores": { "elephant": 3 },
-        "image_tags": ["elephant", "reliable", "warm", "steady"]
+        "scores": {
+          "elephant": 5,
+          "meerkat": 2,
+          "manul": 1
+        },
+        "image_tags": [
+          "reliable",
+          "warm",
+          "steady",
+          "comforting presence"
+        ]
       },
       {
         "text": "Предлагаю что-то весёлое, чтобы всем стало проще общаться",
-        "scores": { "otter": 3 },
-        "image_tags": ["otter", "friendly", "fun", "water play"]
+        "scores": {
+          "otter": 5,
+          "meerkat": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "friendly",
+          "fun",
+          "easygoing",
+          "light mood"
+        ]
       }
     ]
   },
@@ -109,23 +253,59 @@
     "options": [
       {
         "text": "Ты умеешь быть сильным без лишних слов",
-        "scores": { "tiger": 3 },
-        "image_tags": ["tiger", "strong", "silent power", "graceful"]
+        "scores": {
+          "tiger": 5,
+          "elephant": 2,
+          "manul": 1
+        },
+        "image_tags": [
+          "silent power",
+          "strong",
+          "graceful",
+          "focused gaze"
+        ]
       },
       {
         "text": "На тебя можно положиться",
-        "scores": { "elephant": 3 },
-        "image_tags": ["elephant", "kind", "reliable", "calm"]
+        "scores": {
+          "elephant": 5,
+          "meerkat": 2,
+          "sloth": 1
+        },
+        "image_tags": [
+          "kind",
+          "reliable",
+          "calm",
+          "steady warmth"
+        ]
       },
       {
         "text": "Ты появляешься — и сразу становится ярче",
-        "scores": { "flamingo": 3 },
-        "image_tags": ["flamingo", "vivid", "elegant", "sunny"]
+        "scores": {
+          "flamingo": 5,
+          "sea_lion": 2,
+          "otter": 1
+        },
+        "image_tags": [
+          "vivid",
+          "elegant",
+          "radiant",
+          "sunny atmosphere"
+        ]
       },
       {
         "text": "У тебя мощная энергия, тебя трудно не заметить",
-        "scores": { "sea_lion": 3 },
-        "image_tags": ["sea lion", "energetic", "playful", "expressive"]
+        "scores": {
+          "sea_lion": 5,
+          "tiger": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "energetic",
+          "expressive",
+          "bold",
+          "dynamic splash"
+        ]
       }
     ]
   },
@@ -135,23 +315,59 @@
     "options": [
       {
         "text": "Держу границы и не люблю, когда меня торопят",
-        "scores": { "tiger": 3 },
-        "image_tags": ["tiger", "independent", "focused", "confident"]
+        "scores": {
+          "tiger": 5,
+          "manul": 2,
+          "sloth": 1
+        },
+        "image_tags": [
+          "independent",
+          "focused",
+          "confident",
+          "clear boundaries"
+        ]
       },
       {
         "text": "Могу громко и уверенно заявить о себе, если нужно",
-        "scores": { "sea_lion": 3 },
-        "image_tags": ["sea lion", "bold", "charismatic", "splash"]
+        "scores": {
+          "sea_lion": 5,
+          "tiger": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "bold",
+          "charismatic",
+          "loud energy",
+          "showy confidence"
+        ]
       },
       {
-        "text": "Делаю красиво и с настроением",
-        "scores": { "flamingo": 3 },
-        "image_tags": ["flamingo", "beautiful", "pink", "stylish"]
+        "text": "Предпочитаю делать красиво и с настроением",
+        "scores": {
+          "flamingo": 5,
+          "sea_lion": 2,
+          "otter": 1
+        },
+        "image_tags": [
+          "beautiful",
+          "stylish",
+          "expressive",
+          "bright mood"
+        ]
       },
       {
         "text": "Выбираю комфортный темп и не трачу силы зря",
-        "scores": { "sloth": 3 },
-        "image_tags": ["sloth", "comfortable", "slow", "peaceful"]
+        "scores": {
+          "sloth": 5,
+          "elephant": 2,
+          "manul": 1
+        },
+        "image_tags": [
+          "comfortable",
+          "slow",
+          "peaceful",
+          "soft green mood"
+        ]
       }
     ]
   },
@@ -161,23 +377,59 @@
     "options": [
       {
         "text": "Собираюсь, концентрируюсь и быстро выбираю лучший ход",
-        "scores": { "tiger": 3 },
-        "image_tags": ["tiger", "decisive", "focused", "dynamic"]
+        "scores": {
+          "tiger": 5,
+          "manul": 2,
+          "sea_lion": 1
+        },
+        "image_tags": [
+          "decisive",
+          "focused",
+          "dynamic",
+          "sharp attention"
+        ]
       },
       {
-        "text": "Советуюсь со своими и ищу решение вместе",
-        "scores": { "meerkat": 3 },
-        "image_tags": ["meerkat", "team", "alert", "friendly"]
+        "text": "Советуюсь со своими близкими и ищу решение вместе",
+        "scores": {
+          "meerkat": 5,
+          "otter": 2,
+          "elephant": 1
+        },
+        "image_tags": [
+          "team spirit",
+          "alert",
+          "friendly",
+          "supportive energy"
+        ]
       },
       {
         "text": "Не драматизирую: подожду, посмотрю и спокойно адаптируюсь",
-        "scores": { "sloth": 3 },
-        "image_tags": ["sloth", "calm", "gentle", "soft"]
+        "scores": {
+          "sloth": 5,
+          "manul": 2,
+          "elephant": 1
+        },
+        "image_tags": [
+          "calm",
+          "gentle",
+          "patient",
+          "soft atmosphere"
+        ]
       },
       {
         "text": "О, новый поворот! Сейчас проверим, куда он ведёт",
-        "scores": { "otter": 3 },
-        "image_tags": ["otter", "curious", "river", "playful"]
+        "scores": {
+          "otter": 5,
+          "meerkat": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "curious",
+          "adventurous",
+          "fresh",
+          "playful movement"
+        ]
       }
     ]
   },
@@ -187,23 +439,59 @@
     "options": [
       {
         "text": "Тихий, с личным пространством и минимумом лишнего шума",
-        "scores": { "manul": 3 },
-        "image_tags": ["pallas cat", "quiet", "private", "calm"]
+        "scores": {
+          "manul": 5,
+          "sloth": 2,
+          "tiger": 1
+        },
+        "image_tags": [
+          "private",
+          "quiet",
+          "calm",
+          "minimalist mood"
+        ]
       },
       {
         "text": "Активный: всё проверить, всем помочь, быть в курсе событий",
-        "scores": { "meerkat": 3 },
-        "image_tags": ["meerkat", "active", "community", "alert"]
+        "scores": {
+          "meerkat": 5,
+          "otter": 2,
+          "tiger": 1
+        },
+        "image_tags": [
+          "active",
+          "community",
+          "alert",
+          "busy sunny day"
+        ]
       },
       {
         "text": "Размеренный: понятный план, спокойствие и устойчивость",
-        "scores": { "elephant": 3 },
-        "image_tags": ["elephant", "steady", "wise", "calm"]
+        "scores": {
+          "elephant": 5,
+          "sloth": 2,
+          "manul": 1
+        },
+        "image_tags": [
+          "steady",
+          "wise",
+          "calm",
+          "structured rhythm"
+        ]
       },
       {
-        "text": "Праздничный: даже обычный день можно сделать красивее",
-        "scores": { "flamingo": 3 },
-        "image_tags": ["flamingo", "festive", "bright", "elegant"]
+        "text": "Праздничный: даже обычный день можно сделать ярче",
+        "scores": {
+          "flamingo": 5,
+          "sea_lion": 2,
+          "otter": 1
+        },
+        "image_tags": [
+          "festive",
+          "bright",
+          "elegant",
+          "cheerful glow"
+        ]
       }
     ]
   },
@@ -213,23 +501,59 @@
     "options": [
       {
         "text": "Чтобы никто не нарушал личную территорию",
-        "scores": { "manul": 3 },
-        "image_tags": ["pallas cat", "solitude", "quiet", "soft light"]
+        "scores": {
+          "manul": 5,
+          "tiger": 2,
+          "sloth": 1
+        },
+        "image_tags": [
+          "solitude",
+          "quiet",
+          "soft light",
+          "protected space"
+        ]
       },
       {
-        "text": "Чтобы рядом были близкие и было ощущение общей команды",
-        "scores": { "meerkat": 3 },
-        "image_tags": ["meerkat", "group", "warm community", "sunny"]
+        "text": "Чтобы рядом были близкие и ощущалась команда",
+        "scores": {
+          "meerkat": 5,
+          "elephant": 2,
+          "otter": 1
+        },
+        "image_tags": [
+          "warm community",
+          "group comfort",
+          "sunny",
+          "togetherness"
+        ]
       },
       {
         "text": "Чтобы можно было быть заметным и свободным",
-        "scores": { "sea_lion": 3 },
-        "image_tags": ["sea lion", "free", "water", "energetic"]
+        "scores": {
+          "sea_lion": 5,
+          "flamingo": 2,
+          "tiger": 1
+        },
+        "image_tags": [
+          "free",
+          "energetic",
+          "open mood",
+          "bold presence"
+        ]
       },
       {
-        "text": "Чтобы было мягко, спокойно и без спешки",
-        "scores": { "sloth": 3 },
-        "image_tags": ["sloth", "cozy", "relax", "tree branch"]
+        "text": "Чтобы было мягко, спокойно и никуда не спешить",
+        "scores": {
+          "sloth": 5,
+          "elephant": 2,
+          "manul": 1
+        },
+        "image_tags": [
+          "cozy",
+          "relax",
+          "gentle",
+          "peaceful shade"
+        ]
       }
     ]
   },
@@ -238,24 +562,60 @@
     "text": "Как ты ведёшь себя, когда нужно принять важное решение?",
     "options": [
       {
-        "text": "Действую уверенно и не показываю сомнений",
-        "scores": { "tiger": 3 },
-        "image_tags": ["tiger", "confident", "decisive", "strong gaze"]
+        "text": "Действую уверенно и ни в чем не сомневаюсь",
+        "scores": {
+          "tiger": 5,
+          "sea_lion": 2,
+          "manul": 1
+        },
+        "image_tags": [
+          "confident",
+          "decisive",
+          "strong gaze",
+          "controlled power"
+        ]
       },
       {
         "text": "Взвешиваю последствия и выбираю надёжный путь",
-        "scores": { "elephant": 3 },
-        "image_tags": ["elephant", "wise", "thoughtful", "calm power"]
+        "scores": {
+          "elephant": 5,
+          "sloth": 2,
+          "manul": 1
+        },
+        "image_tags": [
+          "thoughtful",
+          "calm power",
+          "wise",
+          "grounded decision"
+        ]
       },
       {
         "text": "Не тороплюсь: лучше чуть позже, но без ошибок",
-        "scores": { "sloth": 3 },
-        "image_tags": ["sloth", "slow", "gentle", "peaceful"]
+        "scores": {
+          "sloth": 5,
+          "elephant": 2,
+          "manul": 1
+        },
+        "image_tags": [
+          "slow",
+          "careful",
+          "gentle",
+          "balanced mood"
+        ]
       },
       {
         "text": "Могу взять инициативу и повести остальных за собой",
-        "scores": { "sea_lion": 3 },
-        "image_tags": ["sea lion", "leader", "expressive", "marine"]
+        "scores": {
+          "sea_lion": 5,
+          "meerkat": 2,
+          "tiger": 1
+        },
+        "image_tags": [
+          "leader energy",
+          "expressive",
+          "bold",
+          "forward motion"
+        ]
       }
     ]
   },
@@ -265,23 +625,59 @@
     "options": [
       {
         "text": "Наблюдатель, который замечает больше, чем говорит",
-        "scores": { "manul": 3 },
-        "image_tags": ["pallas cat", "observant", "quiet", "wise eyes"]
+        "scores": {
+          "manul": 5,
+          "sloth": 2,
+          "tiger": 1
+        },
+        "image_tags": [
+          "observant",
+          "quiet",
+          "wise eyes",
+          "measured presence"
+        ]
       },
       {
         "text": "Координатор: собрать людей, проверить детали, помочь всем",
-        "scores": { "meerkat": 3 },
-        "image_tags": ["meerkat", "teamwork", "supportive", "active"]
+        "scores": {
+          "meerkat": 5,
+          "tiger": 2,
+          "elephant": 1
+        },
+        "image_tags": [
+          "supportive",
+          "teamwork",
+          "active",
+          "organised mood"
+        ]
       },
       {
         "text": "Инициатор игр, идей и внезапных развлечений",
-        "scores": { "otter": 3 },
-        "image_tags": ["otter", "fun", "water", "playful"]
+        "scores": {
+          "otter": 5,
+          "meerkat": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "fun",
+          "playful",
+          "joyful",
+          "movement"
+        ]
       },
       {
-        "text": "Тот, кто приносит стиль, настроение и эффектное появление",
-        "scores": { "flamingo": 3 },
-        "image_tags": ["flamingo", "elegant", "fashionable", "bright"]
+        "text": "Тот, кто приносит стиль, настроение и яркие краски в любой ситуации",
+        "scores": {
+          "flamingo": 5,
+          "meerkat": 2,
+          "otter": 1
+        },
+        "image_tags": [
+          "elegant",
+          "fashionable",
+          "bright",
+          "striking mood"
+        ]
       }
     ]
   },
@@ -290,24 +686,60 @@
     "text": "Если бы тебе дали задание на день в стиле Московского зоопарка, что бы ты выбрал?",
     "options": [
       {
-        "text": "Попробовать облизать нос, как манул Тимофей. Или хотя бы достойно посмотреть",
-        "scores": { "manul": 3 },
-        "image_tags": ["pallas cat", "funny", "fluffy", "winter zoo"]
+        "text": "Достойно смотреть на мир и немного смешить всех своим видом",
+        "scores": {
+          "manul": 5,
+          "sloth": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "funny serious mood",
+          "fluffy",
+          "winter atmosphere",
+          "dignified look"
+        ]
       },
       {
-        "text": "Съесть что-нибудь большое и вкусное, как слониха Капри",
-        "scores": { "elephant": 3 },
-        "image_tags": ["elephant", "warm", "majestic", "kind"]
+        "text": "Съесть что-нибудь большое и вкусное, а потом спокойно отдыхать",
+        "scores": {
+          "elephant": 5,
+          "sloth": 2,
+          "otter": 1
+        },
+        "image_tags": [
+          "warm",
+          "kind",
+          "majestic",
+          "satisfied calm"
+        ]
       },
       {
-        "text": "Устроить водное веселье, как выдры Рубен и Найроби",
-        "scores": { "otter": 3 },
-        "image_tags": ["otter", "splashing water", "playful", "joyful"]
+        "text": "Устроить водное веселье и зарядить всех хорошим настроением",
+        "scores": {
+          "otter": 5,
+          "meerkat": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "splashing water",
+          "joyful",
+          "playful",
+          "fresh energy"
+        ]
       },
       {
-        "text": "Выступить уверенно и громко, как сивуч Дино",
-        "scores": { "sea_lion": 3 },
-        "image_tags": ["sea lion", "splash", "showman", "energetic"]
+        "text": "Выступить уверенно и громко, чтобы тебя точно заметили",
+        "scores": {
+          "sea_lion": 5,
+          "tiger": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "showman energy",
+          "bold",
+          "dynamic",
+          "bright attention"
+        ]
       }
     ]
   },
@@ -317,23 +749,59 @@
     "options": [
       {
         "text": "Коротко, уверенно и по существу",
-        "scores": { "tiger": 3 },
-        "image_tags": ["tiger", "focused", "clean composition", "powerful"]
+        "scores": {
+          "tiger": 5,
+          "manul": 2,
+          "elephant": 1
+        },
+        "image_tags": [
+          "focused",
+          "clean presentation",
+          "powerful",
+          "clear message"
+        ]
       },
       {
         "text": "Через команду: каждому дать слово и собрать общую картину",
-        "scores": { "meerkat": 3 },
-        "image_tags": ["meerkat", "group", "friendly", "cooperative"]
+        "scores": {
+          "meerkat": 5,
+          "tiger": 2,
+          "elephant": 1
+        },
+        "image_tags": [
+          "cooperative",
+          "friendly",
+          "group synergy",
+          "structured flow"
+        ]
       },
       {
         "text": "Ярко, образно и так, чтобы запомнили",
-        "scores": { "flamingo": 3 },
-        "image_tags": ["flamingo", "bright", "elegant", "eye-catching"]
+        "scores": {
+          "flamingo": 5,
+          "sea_lion": 2,
+          "otter": 1
+        },
+        "image_tags": [
+          "bright",
+          "elegant",
+          "memorable",
+          "striking style"
+        ]
       },
       {
-        "text": "С размахом: если выступать, то заметно",
-        "scores": { "sea_lion": 3 },
-        "image_tags": ["sea lion", "charismatic", "water splash", "bold"]
+        "text": "С размахом: если выступать, то чтобы все заметили",
+        "scores": {
+          "sea_lion": 5,
+          "flamingo": 2,
+          "tiger": 1
+        },
+        "image_tags": [
+          "charismatic",
+          "bold",
+          "showy",
+          "big energy"
+        ]
       }
     ]
   },
@@ -343,23 +811,59 @@
     "options": [
       {
         "text": "Когда нарушают мои границы и требуют постоянного общения",
-        "scores": { "manul": 3 },
-        "image_tags": ["pallas cat", "independent", "quiet", "snowy mood"]
+        "scores": {
+          "manul": 5,
+          "tiger": 2,
+          "sloth": 1
+        },
+        "image_tags": [
+          "independent",
+          "quiet mood",
+          "clear boundaries",
+          "cold calm"
+        ]
       },
       {
         "text": "Когда всё слишком скучно и нельзя подвигаться",
-        "scores": { "otter": 3 },
-        "image_tags": ["otter", "movement", "water", "fun"]
+        "scores": {
+          "otter": 5,
+          "meerkat": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "movement",
+          "restless energy",
+          "fun seeking",
+          "fresh mood"
+        ]
       },
       {
         "text": "Когда все суетятся и мешают спокойно жить",
-        "scores": { "sloth": 3 },
-        "image_tags": ["sloth", "peaceful", "slow", "soft green"]
+        "scores": {
+          "sloth": 5,
+          "elephant": 2,
+          "manul": 1
+        },
+        "image_tags": [
+          "peaceful",
+          "slow",
+          "soft green",
+          "need for calm"
+        ]
       },
       {
         "text": "Когда нет порядка и никто не думает наперёд",
-        "scores": { "elephant": 3 },
-        "image_tags": ["elephant", "wise", "stable", "calm strength"]
+        "scores": {
+          "elephant": 5,
+          "meerkat": 2,
+          "tiger": 1
+        },
+        "image_tags": [
+          "stable",
+          "calm strength",
+          "structured",
+          "reliable rhythm"
+        ]
       }
     ]
   },
@@ -369,23 +873,59 @@
     "options": [
       {
         "text": "Уехать туда, где можно почувствовать силу и свободу",
-        "scores": { "tiger": 3 },
-        "image_tags": ["tiger", "forest", "freedom", "power"]
+        "scores": {
+          "tiger": 5,
+          "manul": 2,
+          "sea_lion": 1
+        },
+        "image_tags": [
+          "forest mood",
+          "freedom",
+          "power",
+          "strong silence"
+        ]
       },
       {
         "text": "Провести время со своими и всё обсудить",
-        "scores": { "meerkat": 3 },
-        "image_tags": ["meerkat", "family", "team", "warm sun"]
+        "scores": {
+          "meerkat": 5,
+          "otter": 2,
+          "elephant": 1
+        },
+        "image_tags": [
+          "family warmth",
+          "team spirit",
+          "warm sun",
+          "shared comfort"
+        ]
       },
       {
         "text": "Найти воду, движение или активность с элементом игры",
-        "scores": { "otter": 3 },
-        "image_tags": ["otter", "river", "splash", "playful"]
+        "scores": {
+          "otter": 5,
+          "meerkat": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "river mood",
+          "splash",
+          "playful",
+          "active joy"
+        ]
       },
       {
         "text": "Сходить туда, где можно громко радоваться и быть собой",
-        "scores": { "sea_lion": 3 },
-        "image_tags": ["sea lion", "expressive", "playful", "marine life"]
+        "scores": {
+          "sea_lion": 5,
+          "flamingo": 2,
+          "otter": 1
+        },
+        "image_tags": [
+          "expressive",
+          "playful",
+          "bold mood",
+          "open energy"
+        ]
       }
     ]
   },
@@ -395,23 +935,59 @@
     "options": [
       {
         "text": "Сохраняю силы и двигаюсь только когда это действительно нужно",
-        "scores": { "sloth": 3 },
-        "image_tags": ["sloth", "relaxed", "tree", "gentle"]
+        "scores": {
+          "sloth": 5,
+          "manul": 2,
+          "elephant": 1
+        },
+        "image_tags": [
+          "relaxed",
+          "gentle",
+          "tree shade",
+          "energy saving mood"
+        ]
       },
       {
         "text": "Выдаю мощный рывок, когда есть повод показать себя",
-        "scores": { "sea_lion": 3 },
-        "image_tags": ["sea lion", "jump", "water splash", "high energy"]
+        "scores": {
+          "sea_lion": 5,
+          "tiger": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "jumping energy",
+          "water splash",
+          "high energy",
+          "showy motion"
+        ]
       },
       {
-        "text": "Трачу энергию на красоту, атмосферу и настроение",
-        "scores": { "flamingo": 3 },
-        "image_tags": ["flamingo", "pink", "grace", "beauty"]
+        "text": "Люблю тратить энергию на красоту, атмосферу и настроение",
+        "scores": {
+          "flamingo": 5,
+          "sea_lion": 2,
+          "otter": 1
+        },
+        "image_tags": [
+          "grace",
+          "beauty",
+          "pink glow",
+          "stylish atmosphere"
+        ]
       },
       {
         "text": "Лучше всего заряжаюсь через движение и любопытство",
-        "scores": { "otter": 3 },
-        "image_tags": ["otter", "curious", "joyful", "water play"]
+        "scores": {
+          "otter": 5,
+          "meerkat": 2,
+          "flamingo": 1
+        },
+        "image_tags": [
+          "curious",
+          "joyful",
+          "water play",
+          "fresh lively mood"
+        ]
       }
     ]
   }

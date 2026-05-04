@@ -72,7 +72,8 @@
     │   │   ├── __init__.py
     │   │   ├── admin.py
     │   │   ├── commands.py
-    │   │   ├── contact_actions.py    
+    │   │   ├── contact_actions.py
+    │   │   ├── error_handler.py        
     │   │   ├── fallback.py
     │   │   ├── feedback_actions.py
     │   │   ├── menu.py

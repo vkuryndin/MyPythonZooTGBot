@@ -1,9 +1,12 @@
 import json
+import logging
 import uuid
 from typing import Any
 
 from bot.repositories.redis_client import get_redis_client
 
+
+logger = logging.getLogger(__name__)
 
 QUIZ_SESSION_TTL_SECONDS = 60 * 60 * 2
 QUIZ_ANSWER_LOCK_TTL_SECONDS = 10
@@ -41,7 +44,12 @@ async def get_quiz_session(user_id: int) -> dict[str, Any] | None:
     if raw_session is None:
         return None
 
-    return json.loads(raw_session)
+    try:
+        return json.loads(raw_session)
+    except json.JSONDecodeError:
+        logger.warning("Corrupted quiz session removed user_id=%s", user_id)
+        await redis_client.delete(_quiz_session_key(user_id))
+        return None
 
 
 async def save_quiz_session(user_id: int, session: dict[str, Any]) -> None:

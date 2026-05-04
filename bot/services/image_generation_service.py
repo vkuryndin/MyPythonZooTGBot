@@ -12,6 +12,7 @@ from bot.config import settings
 
 logger = logging.getLogger(__name__)
 
+AI_GENERATION_SEMAPHORE = asyncio.Semaphore(2)
 
 ANIMAL_BASE_PROMPTS = {
     "manul": (
@@ -66,6 +67,7 @@ def build_result_prompt(animal: dict[str, Any], image_tags: list[str]) -> str:
     )
 
     unique_tags: list[str] = []
+
     for tag in image_tags:
         if tag not in unique_tags:
             unique_tags.append(tag)
@@ -138,12 +140,13 @@ async def generate_result_image(
     logger.info("Starting image generation for animal_id=%s", animal["id"])
     started_at = time.perf_counter()
 
-    generated_path = await asyncio.to_thread(
-        _generate_image_sync,
-        prompt,
-        settings.hf_image_model,
-        output_path,
-    )
+    async with AI_GENERATION_SEMAPHORE:
+        generated_path = await asyncio.to_thread(
+            _generate_image_sync,
+            prompt,
+            settings.hf_image_model,
+            output_path,
+        )
 
     elapsed_seconds = time.perf_counter() - started_at
 

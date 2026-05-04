@@ -11,6 +11,7 @@ from bot.handlers import (
     cancel_actions,
     commands,
     contact_actions,
+    error_handler,
     fallback,
     feedback_actions,
     menu,
@@ -22,6 +23,9 @@ from bot.handlers import (
 )
 from bot.repositories.database import close_db_pool, init_db_pool
 from bot.repositories.redis_client import close_redis_client, init_redis_client
+from bot.services.admin_notification_service import (
+    notify_admin_about_critical_startup_error,
+)
 
 
 logging.basicConfig(
@@ -63,16 +67,7 @@ async def set_bot_commands(bot: Bot) -> None:
     )
 
 
-async def main() -> None:
-    logger.info("Starting MoscowZoo bot")
-
-    await init_db_pool()
-    redis_client = await init_redis_client()
-
-    bot = Bot(token=settings.bot_token)
-    storage = RedisStorage(redis=redis_client)
-    dp = Dispatcher(storage=storage)
-
+def register_routers(dp: Dispatcher) -> None:
     dp.include_router(start.router)
     dp.include_router(commands.router)
     dp.include_router(admin.router)
@@ -84,16 +79,55 @@ async def main() -> None:
     dp.include_router(cancel_actions.router)
     dp.include_router(result_image_actions.router)
     dp.include_router(result_view.router)
+    dp.include_router(error_handler.router)
     dp.include_router(fallback.router)
 
-    logger.info("Routers registered")
 
-    await set_bot_commands(bot)
-    logger.info("Bot commands registered")
+async def main() -> int:
+    logger.info("Starting MoscowZoo bot")
+
+    bot = Bot(token=settings.bot_token)
+    startup_stage = "initialization"
 
     try:
+        startup_stage = "PostgreSQL initialization"
+        await init_db_pool()
+
+        startup_stage = "Redis initialization"
+        redis_client = await init_redis_client()
+
+        startup_stage = "Dispatcher initialization"
+        storage = RedisStorage(redis=redis_client)
+        dp = Dispatcher(storage=storage)
+
+        register_routers(dp)
+        logger.info("Routers registered")
+
+        startup_stage = "Bot commands registration"
+        await set_bot_commands(bot)
+        logger.info("Bot commands registered")
+
+        startup_stage = "Polling"
         logger.info("Starting polling")
         await dp.start_polling(bot)
+
+        return 0
+
+    except Exception as error:
+        logger.exception(
+            "MoscowZoo bot startup failed stage=%s error_type=%s",
+            startup_stage,
+            type(error).__name__,
+        )
+
+        await notify_admin_about_critical_startup_error(
+            bot=bot,
+            stage=startup_stage,
+            error=error,
+        )
+
+        return 1
+
     finally:
         logger.info("Stopping MoscowZoo bot")
 
@@ -105,4 +139,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    raise SystemExit(asyncio.run(main()))

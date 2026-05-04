@@ -40,6 +40,9 @@ logger = logging.getLogger(__name__)
 
 FEEDBACK_COOLDOWN_SECONDS = 300
 
+FEEDBACK_RATINGS = {1, 2, 3, 4, 5}
+FEEDBACK_REPLY_METHODS = {"email", "telegram", "none"}
+
 FEEDBACK_STEPS = [
     ("questions_quality", "качество и понятность вопросов"),
     ("answers_quality", "качество и оригинальность ответов"),
@@ -47,6 +50,13 @@ FEEDBACK_STEPS = [
     ("navigation_quality", "понятность бота, меню и общей навигации"),
     ("overall_quality", "викторину в целом"),
 ]
+
+
+def get_callback_value(callback_data: str | None, prefix: str) -> str | None:
+    if not callback_data or not callback_data.startswith(prefix):
+        return None
+
+    return callback_data[len(prefix):]
 
 
 @router.callback_query(lambda callback: callback.data == "leave_feedback")
@@ -80,6 +90,16 @@ async def send_feedback_rating_question(message: Message, state: FSMContext) -> 
     data = await state.get_data()
     step_index = int(data.get("feedback_step", 0))
 
+    if step_index < 0 or step_index >= len(FEEDBACK_STEPS):
+        logger.warning(
+            "Invalid feedback step while sending question user_id=%s step=%s",
+            message.from_user.id,
+            step_index,
+        )
+        await state.clear()
+        await message.answer("Сценарий отзыва устарел. Попробуй оставить отзыв заново 🙂")
+        return
+
     _, question_text = FEEDBACK_STEPS[step_index]
 
     sent_message = await message.answer(
@@ -106,13 +126,44 @@ async def feedback_rating_handler(callback: CallbackQuery, state: FSMContext) ->
         await callback.answer("Сообщение уже недоступно 🙂")
         return
 
-    await safe_delete_callback_message(callback)
+    rating_value = get_callback_value(callback.data, "feedback_rating:")
 
-    rating = int((callback.data or "").split(":")[1])
+    try:
+        rating = int(rating_value) if rating_value is not None else 0
+    except ValueError:
+        logger.warning(
+            "Invalid feedback rating callback user_id=%s value=%s",
+            callback.from_user.id,
+            rating_value,
+        )
+        await callback.answer("Некорректная оценка 🙂")
+        return
+
+    if rating not in FEEDBACK_RATINGS:
+        logger.warning(
+            "Feedback rating out of range user_id=%s value=%s",
+            callback.from_user.id,
+            rating,
+        )
+        await callback.answer("Некорректная оценка 🙂")
+        return
+
+    await safe_delete_callback_message(callback)
 
     data = await state.get_data()
     step_index = int(data.get("feedback_step", 0))
     ratings = data.get("feedback_ratings", {})
+
+    if step_index < 0 or step_index >= len(FEEDBACK_STEPS):
+        logger.warning(
+            "Invalid feedback step user_id=%s step=%s",
+            callback.from_user.id,
+            step_index,
+        )
+        await state.clear()
+        await message.answer("Сценарий отзыва устарел. Попробуй оставить отзыв заново 🙂")
+        await callback.answer()
+        return
 
     rating_key, _ = FEEDBACK_STEPS[step_index]
     ratings[rating_key] = rating
@@ -236,9 +287,18 @@ async def feedback_reply_method_handler(
         await callback.answer("Сообщение уже недоступно 🙂")
         return
 
-    await safe_delete_callback_message(callback)
+    reply_method = get_callback_value(callback.data, "feedback_reply_method:")
 
-    reply_method = (callback.data or "").split(":")[1]
+    if reply_method not in FEEDBACK_REPLY_METHODS:
+        logger.warning(
+            "Invalid feedback reply method callback user_id=%s value=%s",
+            callback.from_user.id,
+            reply_method,
+        )
+        await callback.answer("Некорректное действие 🙂")
+        return
+
+    await safe_delete_callback_message(callback)
 
     if reply_method == "none":
         await finish_feedback_flow(
@@ -313,6 +373,16 @@ async def feedback_reply_contact_handler(message: Message, state: FSMContext) ->
     data = await state.get_data()
     reply_method = data.get("reply_method", "none")
     prompt_message_id = data.get("feedback_reply_contact_prompt_message_id")
+
+    if reply_method not in FEEDBACK_REPLY_METHODS:
+        logger.warning(
+            "Invalid stored feedback reply method user_id=%s value=%s",
+            message.from_user.id,
+            reply_method,
+        )
+        await state.clear()
+        await message.answer("Сценарий отзыва устарел. Попробуй оставить отзыв заново 🙂")
+        return
 
     reply_contact = limit_text(message.text, MAX_REPLY_CONTACT_LENGTH)
 
@@ -463,6 +533,16 @@ async def finish_feedback_flow(
     reply_method: str,
     reply_contact: str | None,
 ) -> None:
+    if reply_method not in FEEDBACK_REPLY_METHODS:
+        logger.warning(
+            "Invalid feedback reply method before finish user_id=%s value=%s",
+            user.id,
+            reply_method,
+        )
+        await state.clear()
+        await message.answer("Сценарий отзыва устарел. Попробуй оставить отзыв заново 🙂")
+        return
+
     allowed, retry_after = await check_user_cooldown(
         user_id=user.id,
         action="feedback",
@@ -484,6 +564,23 @@ async def finish_feedback_flow(
     ratings = data.get("feedback_ratings", {})
     result_animal = data.get("result_animal", "не указан")
     comment = data.get("feedback_comment")
+
+    missing_rating_keys = [
+        rating_key
+        for rating_key, _ in FEEDBACK_STEPS
+        if rating_key not in ratings
+    ]
+
+    if missing_rating_keys:
+        logger.warning(
+            "Feedback ratings are incomplete user_id=%s missing=%s",
+            user.id,
+            ",".join(missing_rating_keys),
+        )
+        await state.clear()
+        await message.answer("Оценки отзыва устарели. Попробуй оставить отзыв заново 🙂")
+        await show_last_result(message=message, user_id=user.id)
+        return
 
     staff_comment = comment if comment else "Комментарий не оставлен."
 

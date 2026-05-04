@@ -41,6 +41,16 @@ logger = logging.getLogger(__name__)
 
 CONTACT_COOLDOWN_SECONDS = 300
 
+CONTACT_METHODS = {"telegram", "email"}
+CONTACT_REPLY_METHODS = {"email", "telegram", "none"}
+
+
+def get_callback_value(callback_data: str | None, prefix: str) -> str | None:
+    if not callback_data or not callback_data.startswith(prefix):
+        return None
+
+    return callback_data[len(prefix):]
+
 
 @router.callback_query(
     lambda callback: callback.data in {
@@ -88,12 +98,22 @@ async def contact_method_handler(callback: CallbackQuery, state: FSMContext) -> 
         await callback.answer("Сообщение уже недоступно 🙂")
         return
 
+    contact_method = get_callback_value(callback.data, "contact_method:")
+
+    if contact_method not in CONTACT_METHODS:
+        logger.warning(
+            "Invalid contact method callback user_id=%s value=%s",
+            callback.from_user.id,
+            contact_method,
+        )
+        await callback.answer("Некорректное действие 🙂")
+        return
+
     data = await state.get_data()
     animal = await get_last_result_animal(callback.from_user.id)
 
     result_animal = animal["name"] if animal is not None else "не указан"
     return_to_result = data.get("return_to_result", animal is not None)
-    contact_method = (callback.data or "").split(":")[1]
 
     await safe_delete_callback_message(callback)
 
@@ -125,9 +145,19 @@ async def contact_reply_method_handler(
         await callback.answer("Сообщение уже недоступно 🙂")
         return
 
+    reply_method = get_callback_value(callback.data, "contact_reply_method:")
+
+    if reply_method not in CONTACT_REPLY_METHODS:
+        logger.warning(
+            "Invalid contact reply method callback user_id=%s value=%s",
+            callback.from_user.id,
+            reply_method,
+        )
+        await callback.answer("Некорректное действие 🙂")
+        return
+
     await safe_delete_callback_message(callback)
 
-    reply_method = (callback.data or "").split(":")[1]
     data = await state.get_data()
     return_to_result = data.get("return_to_result", False)
 
@@ -206,6 +236,16 @@ async def contact_reply_contact_handler(message: Message, state: FSMContext) -> 
     reply_method = data.get("contact_reply_method", "none")
     prompt_message_id = data.get("contact_reply_contact_prompt_message_id")
 
+    if reply_method not in CONTACT_REPLY_METHODS:
+        logger.warning(
+            "Invalid stored contact reply method user_id=%s value=%s",
+            message.from_user.id,
+            reply_method,
+        )
+        await state.clear()
+        await message.answer("Сценарий устарел. Попробуй начать заново 🙂")
+        return
+
     reply_contact = limit_text(message.text, MAX_REPLY_CONTACT_LENGTH)
 
     if reply_method == "email" and not is_valid_email(reply_contact):
@@ -246,6 +286,16 @@ async def ask_contact_message(message: Message, state: FSMContext) -> None:
     contact_method = data.get("contact_method", "telegram")
     return_to_result = data.get("return_to_result", False)
 
+    if contact_method not in CONTACT_METHODS:
+        logger.warning(
+            "Invalid stored contact method user_id=%s value=%s",
+            message.from_user.id,
+            contact_method,
+        )
+        await state.clear()
+        await message.answer("Сценарий устарел. Попробуй начать заново 🙂")
+        return
+
     method_text = "в Telegram" if contact_method == "telegram" else "на почту"
 
     if result_animal != "не указан":
@@ -283,6 +333,26 @@ async def contact_message_handler(message: Message, state: FSMContext) -> None:
 
     reply_method = data.get("contact_reply_method", "none")
     reply_contact = data.get("contact_reply_contact")
+
+    if contact_method not in CONTACT_METHODS:
+        logger.warning(
+            "Invalid stored contact method before sending user_id=%s value=%s",
+            message.from_user.id,
+            contact_method,
+        )
+        await state.clear()
+        await message.answer("Сценарий устарел. Попробуй начать заново 🙂")
+        return
+
+    if reply_method not in CONTACT_REPLY_METHODS:
+        logger.warning(
+            "Invalid stored contact reply method before sending user_id=%s value=%s",
+            message.from_user.id,
+            reply_method,
+        )
+        await state.clear()
+        await message.answer("Сценарий устарел. Попробуй начать заново 🙂")
+        return
 
     allowed, retry_after = await check_user_cooldown(
         user_id=message.from_user.id,

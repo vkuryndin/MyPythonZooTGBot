@@ -43,7 +43,7 @@ async def generate_result_image_handler(callback: CallbackQuery) -> None:
 
     if not allowed:
         await callback.answer(
-            "Картинку можно генерировать не чаще одного раза в 2 минуты. "
+            "Картинку можно генерировать не чаще одного раза в 60 секунд. "
             f"Подожди ещё {retry_after} сек.",
             show_alert=True,
         )

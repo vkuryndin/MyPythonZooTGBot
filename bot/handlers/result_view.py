@@ -34,10 +34,10 @@ async def send_animal_result(
         animal=animal,
         prefix_text=prefix_text,
     )
-    image_path = Path(animal["image_path"])
+    image_path_value = animal.get("image_path")
 
-    if image_path.exists():
-        photo = FSInputFile(image_path)
+    if image_path_value and Path(image_path_value).is_file():
+        photo = FSInputFile(image_path_value)
         await message.answer_photo(
             photo=photo,
             caption=result_text,

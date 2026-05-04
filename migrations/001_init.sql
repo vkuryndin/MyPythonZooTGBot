@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS quiz_results (
 );
 
 ALTER TABLE quiz_results
-ADD COLUMN image_tags JSONB NOT NULL DEFAULT '[]'::jsonb;
+ADD COLUMN IF NOT EXISTS image_tags JSONB NOT NULL DEFAULT '[]'::jsonb;
 
 CREATE INDEX IF NOT EXISTS idx_quiz_results_telegram_user_id
     ON quiz_results (telegram_user_id);
@@ -49,3 +49,12 @@ CREATE TABLE IF NOT EXISTS feedback (
 
 CREATE INDEX IF NOT EXISTS idx_feedback_telegram_user_id
     ON feedback (telegram_user_id);
+
+CREATE INDEX IF NOT EXISTS idx_contact_requests_created_at_id
+    ON contact_requests (created_at DESC, id DESC);
+
+CREATE INDEX IF NOT EXISTS idx_feedback_created_at_id
+    ON feedback (created_at DESC, id DESC);
+
+CREATE INDEX IF NOT EXISTS idx_quiz_results_created_at_id
+    ON quiz_results (created_at DESC, id DESC);

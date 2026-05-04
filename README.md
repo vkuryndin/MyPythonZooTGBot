@@ -58,7 +58,7 @@
     │       ├── manul.jpg
     │       ├── meerkat.jpg
     │       ├── mz_logo.jpg
-    │       ├── OPEKA.JPG
+    │       ├── opeka.JPG
     │       ├── otter.jpg
     │       ├── sea_lion.jpg
     │       ├── sloth.jpg
@@ -72,11 +72,15 @@
     │   │   ├── __init__.py
     │   │   ├── admin.py
     │   │   ├── commands.py
+    │   │   ├── contact_actions.py    
     │   │   ├── fallback.py
+    │   │   ├── feedback_actions.py
     │   │   ├── menu.py
     │   │   ├── quiz.py
     │   │   ├── result_actions.py
+    │   │   ├── result_image_actions.py
     │   │   ├── result_view.py
+    │   │   ├── share_actions.py
     │   │   └── start.py
     │   │
     │   ├── keyboards/
@@ -98,6 +102,7 @@
     │   ├── services/
     │   │   ├── __init__.py
     │   │   ├── action_names.py
+    │   │   ├── admin_notification_service.py
     │   │   ├── email_service.py
     │   │   ├── image_generation_service.py
     │   │   ├── message_utils.py

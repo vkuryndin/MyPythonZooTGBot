@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import random
 from typing import Any
 
@@ -7,6 +8,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import BaseFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, User
+from asyncpg.exceptions import PostgresError
 
 from bot.handlers.menu import show_main_menu
 from bot.handlers.result_view import send_animal_result, show_last_result
@@ -35,6 +37,7 @@ from bot.services.result_service import has_last_result
 
 
 router = Router()
+logger = logging.getLogger(__name__)
 
 
 class ActiveQuizFilter(BaseFilter):
@@ -367,18 +370,31 @@ async def send_result(
         return
 
     animal = quiz_service.get_result_animal(scores)
+    prefix_text = None
 
-    await save_quiz_result(
-        user=user,
-        animal=animal,
-        scores=scores,
-        image_tags=image_tags,
-    )
+    try:
+        await save_quiz_result(
+            user=user,
+            animal=animal,
+            scores=scores,
+            image_tags=image_tags,
+        )
+    except PostgresError:
+        logger.exception("Failed to save quiz result")
+
+        prefix_text = (
+            "Результат посчитан, но сейчас не удалось сохранить его в базу. "
+            "Я всё равно покажу его ниже 🐾"
+        )
 
     quiz_message_ids = await delete_quiz_session(user_id)
     await safe_delete_messages_by_ids(message, quiz_message_ids)
 
-    await send_animal_result(message, animal)
+    await send_animal_result(
+        message=message,
+        animal=animal,
+        prefix_text=prefix_text,
+    )
 
 
 async def cancel_active_quiz(user_id: int) -> list[int]:

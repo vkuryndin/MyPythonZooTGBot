@@ -44,6 +44,8 @@ async def get_quiz_session(user_id: int) -> dict[str, Any] | None:
     if raw_session is None:
         return None
 
+    # Redis data can outlive code changes or be edited manually.
+    # A broken session is safer to drop than to let the quiz handler crash.
     try:
         return json.loads(raw_session)
     except json.JSONDecodeError:
@@ -163,6 +165,8 @@ async def acquire_quiz_answer_lock(user_id: int) -> str | None:
 async def release_quiz_answer_lock(user_id: int, token: str) -> None:
     redis_client = get_redis_client()
 
+    # Release only our own lock token. This prevents one request
+    # from accidentally deleting a lock created by another request.
     script = """
     if redis.call("get", KEYS[1]) == ARGV[1] then
         return redis.call("del", KEYS[1])

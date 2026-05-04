@@ -49,6 +49,7 @@ def get_callback_value(callback_data: str | None, prefix: str) -> str | None:
     if not callback_data or not callback_data.startswith(prefix):
         return None
 
+    # Extract only the value part; the caller still checks it against a whitelist.
     return callback_data[len(prefix):]
 
 
@@ -98,6 +99,7 @@ async def contact_method_handler(callback: CallbackQuery, state: FSMContext) -> 
         await callback.answer("Сообщение уже недоступно 🙂")
         return
 
+    # Callback data can be forged, so do not trust values outside our keyboard.
     contact_method = get_callback_value(callback.data, "contact_method:")
 
     if contact_method not in CONTACT_METHODS:
@@ -392,6 +394,8 @@ async def contact_message_handler(message: Message, state: FSMContext) -> None:
     else:
         reply_text = "Ответ пользователю не требуется."
 
+    # Staff receives enough context to answer the request,
+    # but the reply contact is not stored in PostgreSQL.
     staff_message = (
         "📩 Новое сообщение для сотрудника зоопарка\n\n"
         f"Пользователь: {full_name}\n"
@@ -456,6 +460,8 @@ async def send_contact_to_telegram(
         )
 
     try:
+        # Disable parse mode for staff messages to avoid rendering user input
+        # as Telegram markup.
         await message.bot.send_message(
             chat_id=settings.admin_chat_id,
             text=staff_message,

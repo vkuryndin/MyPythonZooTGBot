@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 async def send_safe_user_error_message(update: Update) -> None:
+    # The user gets a generic message only.
+    # Technical details are logged and sent to the admin separately.
     try:
         if update.callback_query is not None:
             await update.callback_query.answer(
@@ -32,6 +34,7 @@ async def send_safe_user_error_message(update: Update) -> None:
             return
 
     except Exception:
+       # Keep the full traceback in logs, but send only a short alert to Telegram.
         logger.exception("Failed to send safe error message to user")
 
 
@@ -52,4 +55,5 @@ async def global_error_handler(event: ErrorEvent) -> bool:
 
     await send_safe_user_error_message(event.update)
 
+    # Mark the error as handled so one failed update does not stop the bot.
     return True

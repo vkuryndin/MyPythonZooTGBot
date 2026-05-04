@@ -30,6 +30,8 @@ async def check_user_cooldown(
         ttl = await redis_client.ttl(key)
         return False, max(int(ttl), 0)
 
+    # Rate limiting should not break the user flow if Redis has a short outage.
+    # The action is allowed, but the problem is still logged.
     except RedisError:
         logger.warning(
             "Redis cooldown check failed, action is allowed action=%s user_id=%s",

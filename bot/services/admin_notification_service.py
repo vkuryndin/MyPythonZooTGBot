@@ -22,6 +22,7 @@ def limit_alert_text(value: str, max_length: int = 500) -> str:
     if not text:
         return "нет подробного сообщения"
 
+    # Telegram alerts should stay short. Full details remain in server logs.
     if len(text) <= max_length:
         return text
 
@@ -97,6 +98,7 @@ def should_send_handler_alert() -> tuple[bool, int]:
 
     now = time.monotonic()
 
+    # Avoid alert storms when the same broken handler fails repeatedly.
     if now - _last_handler_alert_at < HANDLER_ALERT_COOLDOWN_SECONDS:
         _suppressed_handler_alerts += 1
         return False, _suppressed_handler_alerts
@@ -163,6 +165,8 @@ async def notify_admin_about_handler_error(
         )
         return
 
+    # Do not include message text or callback.data here:
+    # handler alerts are for diagnostics, not for exposing user input.
     update_summary = get_update_summary(update)
     error_type = type(error).__name__
     error_message = limit_alert_text(str(error))
@@ -175,6 +179,8 @@ async def notify_admin_about_handler_error(
             f"{suppressed_count}"
         )
 
+    # Send only operational details. Secrets, passwords and full tracebacks
+    # must stay out of Telegram messages.
     text = (
         "🚨 Ошибка в handler-е бота\n\n"
         f"Тип update: {update_summary['update_type']}\n"

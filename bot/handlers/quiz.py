@@ -83,6 +83,8 @@ async def start_quiz_handler(callback: CallbackQuery, state: FSMContext) -> None
 
     user_id = callback.from_user.id
 
+    # A new quiz should replace any unfinished quiz for this user.
+    # Old quiz messages are removed to avoid stale buttons in the chat.
     old_message_ids = await delete_quiz_session(user_id)
     await safe_delete_messages_by_ids(message, old_message_ids)
 
@@ -197,6 +199,8 @@ async def process_quiz_answer(
     try:
         current_question_position = int(session["question_position"])
 
+        # Ignore answers from old inline keyboards.
+        # Users can still tap buttons from messages that are no longer current.
         if question_position != current_question_position:
             await remove_old_buttons(callback)
             await callback.answer("Этот вопрос уже неактуален 🙂")
@@ -372,6 +376,8 @@ async def send_result(
     animal = quiz_service.get_result_animal(scores)
     prefix_text = None
 
+    # Saving the result is important, but it should not block the user
+    # from seeing the animal if PostgreSQL fails at this point.
     try:
         await save_quiz_result(
             user=user,
@@ -413,6 +419,8 @@ def build_quiz_order() -> tuple[list[int], dict[str, list[int]]]:
 
     option_orders = {}
 
+    # Store original indexes separately from displayed order.
+    # This keeps scoring correct even when questions and answers are shuffled.
     for original_question_index in question_order:
         question = quiz_service.get_question(original_question_index)
         option_order = list(range(len(question["options"])))

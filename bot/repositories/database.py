@@ -13,6 +13,8 @@ DB_CONNECT_TIMEOUT_SECONDS = 5.0
 DB_COMMAND_TIMEOUT_SECONDS = 30.0
 
 
+# Keep connection timeout short: if PostgreSQL is unavailable,
+# the bot should fail fast and send a startup alert instead of hanging.
 async def init_db_pool() -> None:
     global _pool
 

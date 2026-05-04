@@ -68,10 +68,13 @@ def build_result_prompt(animal: dict[str, Any], image_tags: list[str]) -> str:
 
     unique_tags: list[str] = []
 
+    # Keep only the first occurrence of each tag.
+    # This makes the prompt stable and avoids overloading it with repeated cues.
     for tag in image_tags:
         if tag not in unique_tags:
             unique_tags.append(tag)
 
+    # Limit visual cues so the model keeps the animal as the main subject.
     tags_text = ", ".join(unique_tags[:12])
 
     if tags_text:
@@ -133,6 +136,8 @@ async def generate_result_image(
 
     output_path = cache_dir / f"{animal['id']}_{prompt_hash}.png"
 
+    # Cache by prompt hash: identical quiz results should not call
+    # the image generation API again.
     if output_path.exists():
         logger.info("Generated image cache hit for animal_id=%s", animal["id"])
         return str(output_path)
@@ -140,6 +145,8 @@ async def generate_result_image(
     logger.info("Starting image generation for animal_id=%s", animal["id"])
     started_at = time.perf_counter()
 
+    # Limit concurrent image generations to avoid blocking the bot
+    # and hitting provider limits.
     async with AI_GENERATION_SEMAPHORE:
         generated_path = await asyncio.to_thread(
             _generate_image_sync,

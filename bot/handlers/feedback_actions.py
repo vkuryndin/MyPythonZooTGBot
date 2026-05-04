@@ -139,6 +139,7 @@ async def feedback_rating_handler(callback: CallbackQuery, state: FSMContext) ->
         await callback.answer("Некорректная оценка 🙂")
         return
 
+    # Ratings come from inline buttons, but callback data still must be validated.
     if rating not in FEEDBACK_RATINGS:
         logger.warning(
             "Feedback rating out of range user_id=%s value=%s",
@@ -289,6 +290,7 @@ async def feedback_reply_method_handler(
 
     reply_method = get_callback_value(callback.data, "feedback_reply_method:")
 
+    # Only known reply methods are accepted; forged callback values are ignored.
     if reply_method not in FEEDBACK_REPLY_METHODS:
         logger.warning(
             "Invalid feedback reply method callback user_id=%s value=%s",
@@ -473,6 +475,7 @@ async def send_feedback_to_staff(
 
     if settings.admin_chat_id > 0:
         try:
+            # Send feedback as plain text. User comments should not be parsed as markup.
             await bot.send_message(
                 chat_id=settings.admin_chat_id,
                 text=body,
@@ -565,6 +568,7 @@ async def finish_feedback_flow(
     result_animal = data.get("result_animal", "не указан")
     comment = data.get("feedback_comment")
 
+    # Do not save partial feedback: all rating steps must be completed first.
     missing_rating_keys = [
         rating_key
         for rating_key, _ in FEEDBACK_STEPS

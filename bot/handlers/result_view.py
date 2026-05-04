@@ -36,6 +36,8 @@ async def send_animal_result(
     )
     image_path_value = animal.get("image_path")
 
+    # Fallback results may have an empty image path.
+    # Check for a real file before trying to send a photo.
     if image_path_value and Path(image_path_value).is_file():
         photo = FSInputFile(image_path_value)
         await message.answer_photo(

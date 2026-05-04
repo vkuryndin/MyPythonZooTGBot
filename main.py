@@ -80,16 +80,20 @@ def register_routers(dp: Dispatcher) -> None:
     dp.include_router(result_image_actions.router)
     dp.include_router(result_view.router)
     dp.include_router(error_handler.router)
+    # Fallback must stay last: it catches only messages not handled elsewhere.
     dp.include_router(fallback.router)
 
 
 async def main() -> int:
     logger.info("Starting MoscowZoo bot")
 
+    # Create the bot before service initialization so startup failures
+    # can still be reported to the admin.
     bot = Bot(token=settings.bot_token)
     startup_stage = "initialization"
 
     try:
+        # Track startup stage to make admin alerts useful without exposing secrets.
         startup_stage = "PostgreSQL initialization"
         await init_db_pool()
 

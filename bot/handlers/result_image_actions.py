@@ -51,11 +51,12 @@ async def generate_result_image_handler(callback: CallbackQuery) -> None:
 
     await callback.answer("Начинаю генерацию картинки 🐾")
 
-    # Image tags are stored with the quiz result, so generated images
-    # can stay personalized even after the quiz session is gone from Redis.
     result = await get_last_quiz_result(callback.from_user.id)
     image_tags = result.get("image_tags", []) if result else []
+    scores = result.get("scores", {}) if result else {}
 
+    # Image tags are stored with the quiz result, so generated images
+    # can stay personalized even after the quiz session is gone from Redis.
     # Reuse the current result message as a progress indicator.
     # If Telegram refuses to edit it, generation can still continue.
     try:
@@ -75,6 +76,7 @@ async def generate_result_image_handler(callback: CallbackQuery) -> None:
     generated_image_path = await generate_result_image(
         animal=animal,
         image_tags=image_tags,
+        scores=scores,
     )
 
     await safe_delete_message(message)

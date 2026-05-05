@@ -34,18 +34,14 @@ async def save_quiz_result(
         """
         INSERT INTO quiz_results (
             telegram_user_id,
-            username,
-            full_name,
             animal_id,
             animal_name,
             scores,
             image_tags
         )
-        VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb)
+        VALUES ($1, $2, $3, $4::jsonb, $5::jsonb)
         """,
         user.id,
-        user.username,
-        user.full_name,
         animal["id"],
         animal["name"],
         json.dumps(scores, ensure_ascii=False),

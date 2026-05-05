@@ -12,6 +12,14 @@ CREATE TABLE IF NOT EXISTS quiz_results (
 ALTER TABLE quiz_results
 ADD COLUMN IF NOT EXISTS image_tags JSONB NOT NULL DEFAULT '[]'::jsonb;
 
+UPDATE quiz_results
+SET
+    username = NULL,
+    full_name = NULL
+WHERE
+    username IS NOT NULL
+    OR full_name IS NOT NULL;
+
 CREATE INDEX IF NOT EXISTS idx_quiz_results_telegram_user_id
     ON quiz_results (telegram_user_id);
 

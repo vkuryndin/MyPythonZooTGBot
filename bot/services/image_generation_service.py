@@ -75,7 +75,7 @@ def build_result_prompt(animal: dict[str, Any], image_tags: list[str]) -> str:
             unique_tags.append(tag)
 
     # Limit visual cues so the model keeps the animal as the main subject.
-    tags_text = ", ".join(unique_tags[:12])
+    tags_text = ", ".join(unique_tags[:15])
 
     if tags_text:
         extra_part = f"Additional visual cues: {tags_text}. "

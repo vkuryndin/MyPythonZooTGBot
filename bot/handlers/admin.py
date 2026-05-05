@@ -184,9 +184,6 @@ async def admin_feedback_handler(message: Message) -> None:
         parts.append(
             "\n"
             f"{index}. Отзыв #{feedback['id']}\n"
-            f"Пользователь: {limit_text(feedback['full_name'], 80)}\n"
-            f"Username: {format_username(feedback['username'])}\n"
-            f"Telegram ID: {feedback['telegram_user_id']}\n"
             f"Животное: {feedback['animal_name']}\n"
             f"Оценки: "
             f"{feedback['questions_quality']}/"

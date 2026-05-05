@@ -32,7 +32,7 @@ CREATE INDEX IF NOT EXISTS idx_contact_requests_telegram_user_id
 
 CREATE TABLE IF NOT EXISTS feedback (
     id BIGSERIAL PRIMARY KEY,
-    telegram_user_id BIGINT NOT NULL,
+    telegram_user_id BIGINT,
     username VARCHAR(255),
     full_name VARCHAR(255),
     animal_name VARCHAR(100),
@@ -46,6 +46,19 @@ CREATE TABLE IF NOT EXISTS feedback (
     email_sent BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE feedback
+ALTER COLUMN telegram_user_id DROP NOT NULL;
+
+UPDATE feedback
+SET
+    telegram_user_id = NULL,
+    username = NULL,
+    full_name = NULL
+WHERE
+    telegram_user_id IS NOT NULL
+    OR username IS NOT NULL
+    OR full_name IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_feedback_telegram_user_id
     ON feedback (telegram_user_id);

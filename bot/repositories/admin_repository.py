@@ -53,9 +53,6 @@ async def get_latest_feedback(limit: int = 5) -> list[dict[str, Any]]:
         """
         SELECT
             id,
-            telegram_user_id,
-            username,
-            full_name,
             animal_name,
             questions_quality,
             answers_quality,

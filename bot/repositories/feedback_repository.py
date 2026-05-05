@@ -1,10 +1,7 @@
-from aiogram.types import User
-
 from bot.repositories.database import get_pool
 
 
 async def save_feedback(
-    user: User,
     animal_name: str,
     ratings: dict,
     comment_text: str | None,
@@ -16,9 +13,6 @@ async def save_feedback(
     row = await pool.fetchrow(
         """
         INSERT INTO feedback (
-            telegram_user_id,
-            username,
-            full_name,
             animal_name,
             questions_quality,
             answers_quality,
@@ -29,12 +23,9 @@ async def save_feedback(
             telegram_sent,
             email_sent
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING id
         """,
-        user.id,
-        user.username,
-        user.full_name,
         animal_name,
         int(ratings["questions_quality"]),
         int(ratings["answers_quality"]),

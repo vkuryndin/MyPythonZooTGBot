@@ -3,7 +3,7 @@ import logging
 from aiogram import Bot, F, Router
 from aiogram.exceptions import TelegramAPIError
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, User
+from aiogram.types import CallbackQuery, Message
 from asyncpg.exceptions import PostgresError
 
 from bot.config import settings
@@ -56,6 +56,7 @@ def get_callback_value(callback_data: str | None, prefix: str) -> str | None:
     if not callback_data or not callback_data.startswith(prefix):
         return None
 
+    # Extract only the value part; the caller still checks it against a whitelist.
     return callback_data[len(prefix):]
 
 
@@ -128,6 +129,7 @@ async def feedback_rating_handler(callback: CallbackQuery, state: FSMContext) ->
 
     rating_value = get_callback_value(callback.data, "feedback_rating:")
 
+    # Ratings come from inline buttons, but callback data still must be validated.
     try:
         rating = int(rating_value) if rating_value is not None else 0
     except ValueError:
@@ -139,7 +141,6 @@ async def feedback_rating_handler(callback: CallbackQuery, state: FSMContext) ->
         await callback.answer("Некорректная оценка 🙂")
         return
 
-    # Ratings come from inline buttons, but callback data still must be validated.
     if rating not in FEEDBACK_RATINGS:
         logger.warning(
             "Feedback rating out of range user_id=%s value=%s",
@@ -305,7 +306,7 @@ async def feedback_reply_method_handler(
     if reply_method == "none":
         await finish_feedback_flow(
             message=message,
-            user=callback.from_user,
+            user_id=callback.from_user.id,
             state=state,
             reply_method="none",
             reply_contact=None,
@@ -417,7 +418,7 @@ async def feedback_reply_contact_handler(message: Message, state: FSMContext) ->
 
     await finish_feedback_flow(
         message=message,
-        user=message.from_user,
+        user_id=message.from_user.id,
         state=state,
         reply_method=reply_method,
         reply_contact=reply_contact,
@@ -425,15 +426,12 @@ async def feedback_reply_contact_handler(message: Message, state: FSMContext) ->
 
 
 def build_feedback_staff_message(
-    user: User,
     result_animal: str,
     ratings: dict,
     comment: str,
     reply_method: str,
     reply_contact: str | None,
 ) -> str:
-    username = f"@{user.username}" if user.username else "не указан"
-
     if reply_method == "email":
         reply_text = f"Пользователь просит ответить на почту: {reply_contact}"
     elif reply_method == "telegram":
@@ -443,9 +441,6 @@ def build_feedback_staff_message(
 
     text = (
         "⭐ Новый отзыв о викторине MoscowZoo Spirit Animal\n\n"
-        f"Пользователь: {limit_text(user.full_name, 120)}\n"
-        f"Username: {username}\n"
-        f"Telegram ID: {user.id}\n"
         f"Результат викторины: {result_animal}\n\n"
         "Оценки:\n"
         f"1. Качество и понятность вопросов: "
@@ -531,7 +526,7 @@ async def send_feedback_to_staff(
 
 async def finish_feedback_flow(
     message: Message,
-    user: User,
+    user_id: int,
     state: FSMContext,
     reply_method: str,
     reply_contact: str | None,
@@ -539,7 +534,7 @@ async def finish_feedback_flow(
     if reply_method not in FEEDBACK_REPLY_METHODS:
         logger.warning(
             "Invalid feedback reply method before finish user_id=%s value=%s",
-            user.id,
+            user_id,
             reply_method,
         )
         await state.clear()
@@ -547,7 +542,7 @@ async def finish_feedback_flow(
         return
 
     allowed, retry_after = await check_user_cooldown(
-        user_id=user.id,
+        user_id=user_id,
         action="feedback",
         seconds=FEEDBACK_COOLDOWN_SECONDS,
     )
@@ -560,7 +555,7 @@ async def finish_feedback_flow(
             f"Попробуй ещё раз примерно через {retry_after} сек."
         )
 
-        await show_last_result(message=message, user_id=user.id)
+        await show_last_result(message=message, user_id=user_id)
         return
 
     data = await state.get_data()
@@ -578,18 +573,17 @@ async def finish_feedback_flow(
     if missing_rating_keys:
         logger.warning(
             "Feedback ratings are incomplete user_id=%s missing=%s",
-            user.id,
+            user_id,
             ",".join(missing_rating_keys),
         )
         await state.clear()
         await message.answer("Оценки отзыва устарели. Попробуй оставить отзыв заново 🙂")
-        await show_last_result(message=message, user_id=user.id)
+        await show_last_result(message=message, user_id=user_id)
         return
 
     staff_comment = comment if comment else "Комментарий не оставлен."
 
     feedback_message = build_feedback_staff_message(
-        user=user,
         result_animal=result_animal,
         ratings=ratings,
         comment=staff_comment,
@@ -605,7 +599,6 @@ async def finish_feedback_flow(
 
     try:
         await save_feedback(
-            user=user,
             animal_name=result_animal,
             ratings=ratings,
             comment_text=comment,
@@ -621,5 +614,5 @@ async def finish_feedback_flow(
 
     await show_last_result(
         message=message,
-        user_id=user.id,
+        user_id=user_id,
     )

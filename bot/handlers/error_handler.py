@@ -1,13 +1,27 @@
 import logging
 
 from aiogram import Router
-from aiogram.types import ErrorEvent, Update, Message
+from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import ErrorEvent, Update
 
 from bot.services.admin_notification_service import notify_admin_about_handler_error
 
 
 router = Router()
 logger = logging.getLogger(__name__)
+
+
+def is_expired_callback_error(error: Exception) -> bool:
+    if not isinstance(error, TelegramBadRequest):
+        return False
+
+    message = str(error)
+
+    return (
+        "query is too old" in message
+        or "response timeout expired" in message
+        or "query ID is invalid" in message
+    )
 
 
 async def send_safe_user_error_message(update: Update) -> None:
@@ -31,15 +45,30 @@ async def send_safe_user_error_message(update: Update) -> None:
             await update.edited_message.answer(
                 "Что-то пошло не так. Попробуй вернуться в меню через /start 🐾"
             )
+
+    except TelegramBadRequest as error:
+        if is_expired_callback_error(error):
+            logger.warning(
+                "Safe user error message was skipped because callback is expired"
+            )
             return
 
+        logger.exception("Failed to send safe error message to user")
+
     except Exception:
-       # Keep the full traceback in logs, but send only a short alert to Telegram.
         logger.exception("Failed to send safe error message to user")
 
 
 @router.errors()
 async def global_error_handler(event: ErrorEvent) -> bool:
+    if is_expired_callback_error(event.exception):
+        logger.warning(
+            "Expired callback ignored update_id=%s",
+            event.update.update_id if event.update else None,
+        )
+        return True
+
+    # Keep the full traceback in logs, but send only a short alert to Telegram.
     logger.exception(
         "Unhandled handler error update_id=%s error_type=%s",
         event.update.update_id if event.update else None,

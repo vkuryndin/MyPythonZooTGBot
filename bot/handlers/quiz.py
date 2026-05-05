@@ -17,6 +17,7 @@ from bot.repositories.quiz_result_repository import save_quiz_result
 from bot.repositories.quiz_session_repository import (
     acquire_quiz_answer_lock,
     add_image_tags,
+    add_primary_hit,
     add_quiz_message_id,
     add_scores,
     create_quiz_session,
@@ -238,6 +239,7 @@ async def process_quiz_answer(
             original_option_index,
         )
         scores = await add_scores(user_id, option_scores)
+        await add_primary_hit(user_id, option_scores)
 
         option_image_tags = quiz_service.get_option_image_tags(
             original_question_index,
@@ -365,6 +367,7 @@ async def send_result(
     user_id = user.id
     session = await get_quiz_session(user_id)
     image_tags = session.get("image_tags", []) if session else []
+    primary_hits = session.get("primary_hits", {}) if session else {}
 
     if not scores:
         await delete_quiz_session(user_id)
@@ -373,12 +376,15 @@ async def send_result(
         )
         return
 
-    animal = quiz_service.get_result_animal(scores)
+    animal = quiz_service.get_result_animal(
+        scores=scores,
+        primary_hits=primary_hits,
+    )
     prefix_text = None
 
-    # Saving the result is important, but it should not block the user
-    # from seeing the animal if PostgreSQL fails at this point.
     try:
+        # Saving the result is important, but it should not block the user
+        # from seeing the animal if PostgreSQL fails at this point.
         await save_quiz_result(
             user=user,
             animal=animal,

@@ -33,9 +33,62 @@ class QuizService:
         question = self.get_question(question_index)
         return question["options"][option_index]["scores"]
 
-    def get_result_animal(self, scores: dict[str, int]) -> dict[str, Any]:
-        winner_id = max(scores, key=scores.get)
+    def get_result_animal(
+        self,
+        scores: dict[str, int],
+        primary_hits: dict[str, int] | None = None,
+    ) -> dict[str, Any]:
+        winner_id = self.get_result_animal_id(
+            scores=scores,
+            primary_hits=primary_hits,
+        )
         return self._find_animal_by_id(winner_id)
+
+    def get_result_animal_id(
+        self,
+        scores: dict[str, int],
+        primary_hits: dict[str, int] | None = None,
+    ) -> str:
+        if not scores:
+            raise ValueError("Scores must not be empty")
+
+        max_score = max(scores.values())
+        candidates = [
+            animal_id
+            for animal_id, score in scores.items()
+            if score == max_score
+        ]
+
+        if len(candidates) == 1:
+            return candidates[0]
+
+        primary_hits = primary_hits or {}
+        max_primary_hits = max(
+            int(primary_hits.get(animal_id, 0))
+            for animal_id in candidates
+        )
+
+        primary_candidates = [
+            animal_id
+            for animal_id in candidates
+            if int(primary_hits.get(animal_id, 0)) == max_primary_hits
+        ]
+
+        if len(primary_candidates) == 1:
+            return primary_candidates[0]
+
+        return self._get_stable_tie_break_winner(primary_candidates)
+
+    def _get_stable_tie_break_winner(self, candidates: list[str]) -> str:
+        candidate_set = set(candidates)
+
+        for animal in self.animals:
+            animal_id = animal["id"]
+
+            if animal_id in candidate_set:
+                return animal_id
+
+        return candidates[0]
 
     def get_animal_by_id(self, animal_id: str) -> dict[str, Any]:
         return self._find_animal_by_id(animal_id)

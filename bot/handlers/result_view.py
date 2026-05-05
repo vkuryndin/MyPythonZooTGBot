@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 
 from aiogram import Router
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery, FSInputFile, Message
 
 from bot.keyboards.main_menu import get_main_menu_keyboard
@@ -23,6 +24,43 @@ def build_result_text(
     )
 
     return f"{prefix_text}\n\n{text}" if prefix_text else text
+
+
+def get_callback_message(callback: CallbackQuery) -> Message | None:
+    if isinstance(callback.message, Message):
+        return callback.message
+
+    return None
+
+
+async def safe_answer_callback(
+    callback: CallbackQuery,
+    text: str | None = None,
+    show_alert: bool = False,
+) -> None:
+    try:
+        await callback.answer(
+            text=text,
+            show_alert=show_alert,
+        )
+    except TelegramBadRequest as error:
+        if is_expired_callback_error(error):
+            return
+
+        raise
+
+
+def is_expired_callback_error(error: Exception) -> bool:
+    if not isinstance(error, TelegramBadRequest):
+        return False
+
+    message = str(error)
+
+    return (
+        "query is too old" in message
+        or "response timeout expired" in message
+        or "query ID is invalid" in message
+    )
 
 
 async def send_animal_result(
@@ -75,13 +113,20 @@ async def show_last_result(
 
 @router.callback_query(lambda callback: callback.data == "back_to_result")
 async def back_to_result_handler(callback: CallbackQuery) -> None:
+    message = get_callback_message(callback)
+
+    if message is None:
+        await safe_answer_callback(callback, "Сообщение уже недоступно 🙂")
+        return
+
+    await safe_answer_callback(callback)
+
     await safe_delete_callback_message(callback)
 
     await show_last_result(
-        message=callback.message,
+        message=message,
         user_id=callback.from_user.id,
     )
-    await callback.answer()
 
 
 async def send_result_actions_menu(

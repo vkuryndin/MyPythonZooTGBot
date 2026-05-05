@@ -30,6 +30,7 @@ async def create_quiz_session(
         "question_order": question_order,
         "option_orders": option_orders,
         "scores": {},
+        "primary_hits": {},
         "image_tags": [],
         "quiz_message_ids": [],
     }
@@ -111,6 +112,34 @@ async def add_scores(
     await save_quiz_session(user_id, session)
 
     return scores
+
+
+async def add_primary_hit(
+    user_id: int,
+    option_scores: dict[str, int],
+) -> dict[str, int]:
+    session = await get_quiz_session(user_id)
+
+    if session is None or not option_scores:
+        return {}
+
+    max_points = max(option_scores.values())
+    primary_animal_ids = [
+        animal_id
+        for animal_id, points in option_scores.items()
+        if points == max_points
+    ]
+
+    if not primary_animal_ids:
+        return session.setdefault("primary_hits", {})
+
+    primary_animal_id = primary_animal_ids[0]
+    primary_hits = session.setdefault("primary_hits", {})
+    primary_hits[primary_animal_id] = primary_hits.get(primary_animal_id, 0) + 1
+
+    await save_quiz_session(user_id, session)
+
+    return primary_hits
 
 
 async def add_image_tags(user_id: int, image_tags: list[str]) -> list[str]:

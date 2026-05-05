@@ -343,9 +343,9 @@ async def generate_result_image(
     )
 
     # debugging AI prompts.
-    print("\n===== AI PROMPT START =====")
-    print(prompt)
-    print("===== AI PROMPT END =====\n")
+    #print("\n===== AI PROMPT START =====")
+    #print(prompt)
+    #print("===== AI PROMPT END =====\n")
 
     prompt_hash = hashlib.sha1(prompt.encode("utf-8")).hexdigest()[:16]
 

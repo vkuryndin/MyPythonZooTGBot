@@ -55,7 +55,7 @@
 
 ### AI-картинка
 
-По результату викторины бот может сгенерировать отдельную AI-картинку. При генерации используются итоговое животное и теги, собранные из ответов пользователя.
+По результату викторины бот может сгенерировать отдельную AI-картинку. При генерации используются итоговое животное, визуальные теги из ответов пользователя и score-профиль викторины. По score-профилю бот может добавить второе животное как менее заметного спутника на картинке, при этом главное животное остаётся основным объектом изображения.
 
 ---
 
@@ -159,6 +159,7 @@
     │   └── check_project.py
     │
     ├── .dockerignore
+    ├── .gitignore
     ├── .env.example
     ├── docker-compose.yml
     ├── Dockerfile
@@ -200,14 +201,14 @@
 | `bot/handlers/admin.py` | Read-only админский режим: статистика, последние обращения и отзывы. |
 | `bot/repositories/database.py` | Инициализация PostgreSQL connection pool с timeout-ами. |
 | `bot/repositories/redis_client.py` | Инициализация Redis client. |
-| `bot/repositories/quiz_session_repository.py` | Redis-сессии викторины, баллы, `image_tags`, id сообщений и lock для защиты от двойных ответов. |
+| `bot/repositories/quiz_session_repository.py` | Redis-сессии викторины, баллы, `primary_hits`, `image_tags`, id сообщений и lock для защиты от двойных ответов. |
 | `bot/repositories/quiz_result_repository.py` | Сохранение и получение результатов викторины из PostgreSQL. |
 | `bot/repositories/contact_repository.py` | Сохранение контактных заявок. |
 | `bot/repositories/feedback_repository.py` | Сохранение отзывов пользователей. |
 | `bot/repositories/admin_repository.py` | Read-only запросы для админской статистики. |
-| `bot/services/quiz_service.py` | Загрузка JSON-данных и расчёт итогового животного. |
+| `bot/services/quiz_service.py` | Загрузка JSON-данных, расчёт итогового животного и tie-break при равенстве баллов. |
 | `bot/services/result_service.py` | Получение последнего результата пользователя и восстановление животного из `animals.json`. |
-| `bot/services/image_generation_service.py` | Генерация AI-картинки через Hugging Face с кэшированием и ограничением параллельных запросов. |
+| `bot/services/image_generation_service.py` | Генерация AI-картинки через Hugging Face: prompt строится по итоговому животному, `image_tags` и score-профилю; используется кэш и ограничение параллельных запросов. |
 | `bot/services/rate_limit_service.py` | Redis cooldown для защиты от частых действий. |
 | `bot/services/admin_notification_service.py` | Уведомления админу о критических ошибках запуска и ошибках handler-ов. |
 | `bot/services/user_input_service.py` | Валидация email, Telegram username и ограничение длины пользовательского текста. |
@@ -266,7 +267,7 @@ PostgreSQL используется для постоянных данных:
 
 - результаты викторины;
 - контактные заявки;
-- отзывы пользователей.
+- обезличенные отзывы пользователей.
 
 Redis используется для временных данных:
 
@@ -290,6 +291,9 @@ Redis используется для временных данных:
 - email и Telegram username проходят валидацию;
 - callback-значения для контактов и отзывов проверяются через whitelist;
 - служебные сообщения сотруднику отправляются с `parse_mode=None`, без HTML/Markdown-разметки;
+- отзывы сохраняются в обезличенном виде: без `telegram_user_id`, `username` и `full_name`;
+- в результатах викторины сохраняется только `telegram_user_id` как технический идентификатор для команды `/result`, без `username` и `full_name`;
+- контактные заявки сохраняют данные, необходимые сотруднику для обработки обращения;
 - контакт для ответа не сохраняется в PostgreSQL, а используется только в сообщении сотруднику;
 - для контактов, отзывов и AI-генерации используется Redis cooldown;
 - ответы викторины защищены Redis lock от двойных нажатий;
@@ -365,22 +369,41 @@ HF_PROVIDER=hf-inference
 
 ### Локальный запуск
 
+Установить зависимости:
+
 ```
     pip install -r requirements.txt
 ```
-Запустить PostgreSQL и Redis локально или указать доступы к уже запущенным сервисам в .env.
-Применить миграцию из файла:
+
+Создать локальную базу данных PostgreSQL и пользователя, если они ещё не созданы:
 
 ```
-    migrations/001_init.sql
+    CREATE DATABASE python_zoo;
+    CREATE USER python_zoo_user WITH PASSWORD 'change_me';
+    GRANT ALL PRIVILEGES ON DATABASE python_zoo TO python_zoo_user;
 ```
+
+Подключиться к базе `python_zoo` и выдать права на схему:
+
+```
+    GRANT ALL ON SCHEMA public TO python_zoo_user;
+```
+
+Запустить PostgreSQL и Redis локально или указать доступы к уже запущенным сервисам в `.env`.
+
+Применить миграцию:
+
+```
+    psql -U python_zoo_user -d python_zoo -f migrations/001_init.sql
+```
+
+Также миграцию можно выполнить через DBeaver, открыв файл `migrations/001_init.sql` в базе `python_zoo`.
 
 Запустить бота:
 
 ```
-     python main.py
+    python main.py
 ```
-
 
 ### Запуск через Docker Compose
 
@@ -504,7 +527,7 @@ python scripts/check_project.py
 
 ## Статус проекта
 
-Проект развернут на AWS EC2 через Docker Compose.
+Проект развернут на AWS EC2 через Docker Compose. Бот доступен по ссылке https://t.me/KuryndinMoscowZooBot
 
 На сервере работают:
 
